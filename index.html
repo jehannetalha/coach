@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Coach</title>
@@ -394,7 +395,7 @@ pre.report {
       <span class="chip small">Betterave cuite</span>
       <span class="chip small">Patate douce (mid)</span>
     </div>
-    <p class="hint">💡 Cru = verdure ; cuits ces légumes passent en carbs.</p>
+    <p class="hint">💡 Cru = verdure ; cuits ces légumes passent en carbs. Idem pour la tomate : crue = comme un fruit, cuite longtemps = carbs (comme la carotte).</p>
 
     <h3>7 fromages ≤ 0,3% sel (OK à dîner)</h3>
     <div class="row wrap" style="gap: 6px;">
@@ -540,6 +541,21 @@ const SEED_RECIPES = [
   { id: "lentilles-corail-epinards", title: "Lentilles corail + épinards + curcuma", type: "prot-verdure", proteins: ["vege"], region: "méditerranée", notes: "Lentilles corail au lait de coco (léger), curcuma, cumin, épinards frais, oignon rouge, coriandre." },
   { id: "salade-lentilles-vertes", title: "Salade de lentilles vertes + tomates + herbes", type: "prot-verdure", proteins: ["vege"], region: "français", notes: "Lentilles du Puy, échalote, tomates, persil, vinaigrette moutarde huile d'olive citron." },
   { id: "tofu-grille-wok", title: "Tofu grillé + wok de légumes + sésame", type: "prot-verdure", proteins: ["vege"], region: "asiatique", notes: "Tofu ferme mariné (soja, gingembre, ail), poivrons brocoli courgette au wok, sésame torréfié." },
+  { id: "kangkong-tofu-ail", title: "Kangkong (liseron d'eau) sauté ail + tofu", type: "prot-verdure", proteins: ["vege"], region: "asiatique", notes: "Kangkong (ou pak choi, épinards chinois) sauté rapidement à l'ail, sauce soja, tofu ferme grillé, sésame." },
+
+  // Prot + verdure — nouveaux légumes / épices
+  { id: "chakchouka-verte", title: "Chakchouka verte (œufs, épinards, courgette, poivron)", type: "prot-verdure", proteins: ["oeuf"], region: "méditerranée", notes: "Poivrons verts + courgette + oignon + ail fondus doucement, épinards, zaatar, cumin ; œufs cassés dessus, couvert 4 min. Coriandre fraîche." },
+  { id: "poireaux-vinaigrette-oeuf", title: "Poireaux vinaigrette + œuf mimosa", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Blancs de poireaux vapeur, vinaigrette moutarde huile olive citron, œufs durs mimosa, ciboulette." },
+  { id: "poireaux-cabillaud", title: "Fondue de poireaux + dos de cabillaud", type: "prot-verdure", proteins: ["poisson"], region: "français", notes: "Poireaux ciselés fondus au beurre / huile olive, dos de cabillaud poêlé, aneth, citron." },
+  { id: "aubergines-zaatar-feta", title: "Aubergines rôties + zaatar + feta + grenade", type: "prot-verdure", proteins: ["fromage"], region: "méditerranée", notes: "Tranches d'aubergine rôties, zaatar, feta émiettée, graines de grenade, huile olive, menthe." },
+  { id: "chou-rave-radis-feta", title: "Salade chou-rave + radis + féta + menthe", type: "prot-verdure", proteins: ["fromage"], region: "méditerranée", notes: "Chou-rave râpé cru + radis roses en tranches + feta + menthe fraîche + citron + huile olive." },
+  { id: "courgettes-carpaccio-mozza", title: "Carpaccio de courgettes crues + mozzarella + zaatar", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Courgettes en fines lamelles, citron, huile d'olive, mozza di bufala, zaatar, pignons torréfiés." },
+  { id: "poivrons-marines-roquette", title: "Poivrons rôtis marinés + roquette + noix", type: "prot-verdure", proteins: [], region: "méditerranée", notes: "Poivrons rouges/jaunes rôtis et pelés, marinés huile olive ail basilic, servis sur roquette + noix (compter oléagineux jour). Ajoute une protéine au choix (feta, œuf, poisson blanc)." },
+  { id: "ratatouille-oeufs", title: "Ratatouille + œufs cassés dessus", type: "prot-verdure", proteins: ["oeuf"], region: "provençal", notes: "Ratatouille classique (aubergine, courgette, poivron, tomate, oignon), œufs cassés dessus en fin de cuisson, herbes de Provence." },
+
+  // Carbs + verdure — nouveaux
+  { id: "tian-provencal", title: "Tian provençal (aubergine courgette tomate)", type: "carbs-verdure", proteins: [], region: "provençal", notes: "Rondelles d'aubergine, courgette, tomate rôties au four sur lit d'oignons, thym, huile d'olive. Tomates cuites = comptent comme carbs." },
+  { id: "poireaux-vinaigrette-carbs", title: "Poireaux vinaigrette + pain complet", type: "carbs-verdure", proteins: [], region: "français", notes: "Blancs de poireaux vapeur, vinaigrette moutarde huile olive, tranche de pain complet frottée à l'ail." },
 
   // Carbs + verdure — méditerranéen
   { id: "pates-tomates-basilic", title: "Pâtes fraîches tomates confites basilic olives", type: "carbs-verdure", proteins: [], region: "italien", notes: "Pâtes fraîches, tomates confites, olives noires, basilic frais, huile olive, ail. (Sans parmesan.)" },
