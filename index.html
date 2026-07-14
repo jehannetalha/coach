@@ -244,6 +244,39 @@ textarea { min-height: 60px; resize: vertical; }
 .session-summary .date { font-weight: 600; }
 .session-summary .type { color: var(--accent); font-size: 12px; }
 
+.auth-gate {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.auth-gate.hidden { display: none; }
+.auth-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+}
+.auth-box h2 { margin-bottom: 8px; }
+.auth-box .muted { margin-bottom: 16px; display: block; }
+.auth-box input { margin-bottom: 10px; }
+.auth-box code {
+  display: block;
+  background: var(--card2);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  word-break: break-all;
+  color: var(--accent);
+  margin: 10px 0;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
 pre.report {
   background: var(--card2);
   padding: 12px;
@@ -259,6 +292,12 @@ pre.report {
 </style>
 </head>
 <body>
+
+<div id="auth-gate" class="auth-gate">
+  <div class="auth-box">
+    <div id="auth-content"></div>
+  </div>
+</div>
 
 <header>
   <div>
@@ -360,6 +399,17 @@ pre.report {
   </div>
 
   <div class="card">
+    <h2>Historique jour par jour</h2>
+    <div class="row wrap" style="gap:6px; margin-bottom: 10px;">
+      <span class="chip small hist-chip active" data-hist="7">7 derniers jours</span>
+      <span class="chip small hist-chip" data-hist="14">14 derniers</span>
+      <span class="chip small hist-chip" data-hist="30">30 derniers</span>
+      <span class="chip small hist-chip" data-hist="all">Tout</span>
+    </div>
+    <div id="nutrition-history"></div>
+  </div>
+
+  <div class="card">
     <h2>Aide-mémoire</h2>
 
     <h3>4 protéines animales</h3>
@@ -416,10 +466,14 @@ pre.report {
     </div>
     <div class="row wrap" style="margin: 8px 0;">
       <span class="chip small filter-chip active" data-filter="all">Toutes</span>
-      <span class="chip small filter-chip" data-filter="prot-verdure">Prot + verdure</span>
-      <span class="chip small filter-chip" data-filter="carbs-verdure">Carbs + verdure</span>
-      <span class="chip small filter-chip" data-filter="fruits">Repas fruits</span>
-      <span class="chip small filter-chip" data-filter="recovery">Récup</span>
+      <span class="chip small filter-chip" data-filter="viande">🥩 Viande</span>
+      <span class="chip small filter-chip" data-filter="poisson">🐟 Poisson</span>
+      <span class="chip small filter-chip" data-filter="oeuf">🥚 Œuf</span>
+      <span class="chip small filter-chip" data-filter="fromage">🧀 Fromage</span>
+      <span class="chip small filter-chip" data-filter="vege">🌱 PV</span>
+      <span class="chip small filter-chip" data-filter="carbs-only">🍞 Carbs</span>
+      <span class="chip small filter-chip" data-filter="fruits">🍎 Fruits</span>
+      <span class="chip small filter-chip" data-filter="recovery">🥗 Récup</span>
       <span class="chip small filter-chip" data-filter="fav">👍 Favorites</span>
     </div>
     <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-bottom:8px;">
@@ -550,7 +604,7 @@ const SEED_RECIPES = [
   { id: "aubergines-zaatar-feta", title: "Aubergines rôties + zaatar + feta + grenade", type: "prot-verdure", proteins: ["fromage"], region: "méditerranée", notes: "Tranches d'aubergine rôties, zaatar, feta émiettée, graines de grenade, huile olive, menthe." },
   { id: "chou-rave-radis-feta", title: "Salade chou-rave + radis + féta + menthe", type: "prot-verdure", proteins: ["fromage"], region: "méditerranée", notes: "Chou-rave râpé cru + radis roses en tranches + feta + menthe fraîche + citron + huile olive." },
   { id: "courgettes-carpaccio-mozza", title: "Carpaccio de courgettes crues + mozzarella + zaatar", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Courgettes en fines lamelles, citron, huile d'olive, mozza di bufala, zaatar, pignons torréfiés." },
-  { id: "poivrons-marines-roquette", title: "Poivrons rôtis marinés + roquette + noix", type: "prot-verdure", proteins: [], region: "méditerranée", notes: "Poivrons rouges/jaunes rôtis et pelés, marinés huile olive ail basilic, servis sur roquette + noix (compter oléagineux jour). Ajoute une protéine au choix (feta, œuf, poisson blanc)." },
+  { id: "poivrons-marines-roquette", title: "Poivrons rôtis marinés + roquette + noix", type: "carbs-verdure", proteins: [], region: "méditerranée", notes: "Poivrons rouges/jaunes rôtis et pelés, marinés huile olive ail basilic, servis sur roquette + noix (compter oléagineux jour)." },
   { id: "ratatouille-oeufs", title: "Ratatouille + œufs cassés dessus", type: "prot-verdure", proteins: ["oeuf"], region: "provençal", notes: "Ratatouille classique (aubergine, courgette, poivron, tomate, oignon), œufs cassés dessus en fin de cuisson, herbes de Provence." },
 
   // Carbs + verdure — nouveaux
@@ -578,7 +632,92 @@ const SEED_RECIPES = [
   { id: "recup-matin-oeufs-epinards", title: "Récup matin : œufs + épinards", type: "recovery", proteins: ["oeuf"], region: "français", notes: "2 œufs (au plat, brouillés ou coque), grande poignée d'épinards ou mâche, filet d'huile d'olive." },
   { id: "recup-matin-omelette-blanche", title: "Récup matin : omelette blanche épinards tomates", type: "recovery", proteins: ["oeuf"], region: "français", notes: "Omelette 2 blancs + 1 jaune, épinards frais, tomates cerises, herbes." },
   { id: "recup-soir-tomates-concombre-fruits", title: "Récup soir : tomates concombre fruits + oléagineux", type: "recovery", proteins: [], region: "français", notes: "Tomates, concombre, herbes fraîches (basilic menthe), fruits frais, poignée d'amandes." },
-  { id: "recup-soir-salade-menthe", title: "Récup soir : salade tomate menthe amandes + fruit rouge", type: "recovery", proteins: [], region: "méditerranée", notes: "Salade tomates concombre menthe basilic olives, quelques amandes, petits fruits rouges." }
+  { id: "recup-soir-salade-menthe", title: "Récup soir : salade tomate menthe amandes + fruit rouge", type: "recovery", proteins: [], region: "méditerranée", notes: "Salade tomates concombre menthe basilic olives, quelques amandes, petits fruits rouges." },
+
+  // ============ Viandes (élargi) ============
+  { id: "poulet-grille-herbes-provence", title: "Poulet grillé aux herbes de Provence (air fryer)", type: "prot-verdure", proteins: ["viande"], region: "provençal", notes: "Filet de poulet mariné (thym, romarin, ail, huile olive), air fryer 180°C 15 min. Salade verte + tomates crues + vinaigrette huile de noisette." },
+  { id: "poulet-tandoori-air-fryer", title: "Poulet tandoori (air fryer) + concombre menthe", type: "prot-verdure", proteins: ["viande"], region: "asiatique", notes: "Poulet mariné épices tandoori + huile olive (pas de yaourt : viande + laitier), air fryer 180° 15 min. Concombre rondelles, menthe, citron vert." },
+  { id: "poulet-basilic-haricots", title: "Émincés de poulet basilic thaï + haricots verts", type: "prot-verdure", proteins: ["viande"], region: "asiatique", notes: "Émincés sautés vite huile + ail + gingembre + basilic thaï + piment doux. Haricots verts vapeur, sésame grillé." },
+  { id: "poulet-thym-tomates", title: "Poulet fermier au thym + tomates crues de saison", type: "prot-verdure", proteins: ["viande"], region: "provençal", notes: "Cuisses fermières air fryer thym ail, tomates de saison en tranches, huile olive, basilic, fleur de sel." },
+  { id: "dinde-citron-roquette", title: "Escalope de dinde citronnée + roquette + pignons", type: "prot-verdure", proteins: ["viande"], region: "italien", notes: "Escalope de dinde poêlée rapide, jus de citron, roquette, pignons torréfiés, huile olive." },
+  { id: "poulet-croute-herbes", title: "Suprême de poulet en croûte d'herbes (air fryer) + salade", type: "prot-verdure", proteins: ["viande"], region: "français", notes: "Suprême enrobé de persil ciboulette moutarde, air fryer 180° 18 min. Mesclun, vinaigrette huile de noix." },
+  { id: "boulettes-veau-fenouil", title: "Boulettes de veau au fenouil + salade", type: "prot-verdure", proteins: ["viande"], region: "italien", notes: "Boulettes de veau haché aux graines de fenouil et persil, poêlées vite. Salade roquette tomate." },
+  { id: "tartare-boeuf-capres", title: "Tartare de bœuf + câpres + salade", type: "prot-verdure", proteins: ["viande"], region: "français", notes: "Rumsteck haché au couteau, échalote, câpres, cornichons, moutarde, Tabasco, salade verte, huile olive." },
+  { id: "carpaccio-boeuf-roquette", title: "Carpaccio de bœuf + roquette + pignons", type: "prot-verdure", proteins: ["viande"], region: "italien", notes: "Tranches fines de bœuf cru, roquette, pignons torréfiés, huile olive, citron, fleur de sel. (Parmesan = 2e prot, à omettre.)" },
+  { id: "steak-hache-haricots-persillade", title: "Steak haché + haricots verts persillade", type: "prot-verdure", proteins: ["viande"], region: "français", notes: "Steak haché grillé saignant, haricots verts vapeur sautés ail-persil, huile olive." },
+  { id: "souris-agneau-haricots", title: "Souris d'agneau confite aux herbes + haricots verts", type: "prot-verdure", proteins: ["viande"], region: "provençal", notes: "Souris lente au four (herbes de Provence, ail, romarin), haricots verts vapeur." },
+  { id: "magret-canard-salade-balsamique", title: "Magret de canard grillé + salade balsamique", type: "prot-verdure", proteins: ["viande"], region: "français", notes: "Magret côté peau grillé puis viande rosée, mesclun, vinaigre balsamique, huile de noix." },
+  { id: "lapin-moutarde-haricots", title: "Lapin à la moutarde + haricots verts", type: "prot-verdure", proteins: ["viande"], region: "français", notes: "Râbles de lapin moutarde-thym au four, haricots verts vapeur, persil." },
+
+  // ============ Poissons (élargi) ============
+  { id: "ceviche-poisson-blanc", title: "Ceviche de poisson blanc + coriandre citron vert", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Daurade ou bar en dés, mariné 15 min citron vert, coriandre, oignon rouge, piment doux, avocat." },
+  { id: "tartare-thon-rouge-sesame", title: "Tartare de thon rouge + avocat + sésame grillé", type: "prot-verdure", proteins: ["poisson"], region: "asiatique", notes: "Thon rouge cru en dés, avocat, sauce soja, gingembre râpé, sésame torréfié, huile de sésame, oignon nouveau." },
+  { id: "sashimis-maison", title: "Sashimis maison (thon, saumon, dorade) + salade wakame", type: "prot-verdure", proteins: ["poisson"], region: "asiatique", notes: "Poissons qualité sashimi tranchés fins, salade wakame, gingembre mariné, sauce soja légère, sésame." },
+  { id: "saumon-grille-brocolis", title: "Saumon grillé + brocolis + citron", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Pavé de saumon grillé peau croustillante, brocolis vapeur, citron, huile olive, aneth." },
+  { id: "saumon-mi-cuit-poireaux", title: "Saumon mi-cuit + poireaux vapeur", type: "prot-verdure", proteins: ["poisson"], region: "français", notes: "Saumon juste snacké peau, cœur rosé, poireaux vapeur, huile olive, ciboulette." },
+  { id: "truite-bleu-amandes", title: "Truite au bleu + haricots verts + amandes", type: "prot-verdure", proteins: ["poisson"], region: "français", notes: "Truite entière pochée court-bouillon, haricots verts vapeur, amandes effilées grillées." },
+  { id: "saint-pierre-plancha-fenouil", title: "Saint-Pierre à la plancha + fenouil", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Filet Saint-Pierre plancha 2 min/face, fenouil cru en lamelles + huile olive + citron + aneth." },
+  { id: "rougets-grilles-tomates", title: "Rougets grillés + tomates concombre olives", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Petits rougets barbet grillés entiers, salade tomates concombre olives noires, basilic, huile olive." },
+  { id: "maquereaux-grilles-fenouil", title: "Maquereaux grillés + salade fenouil roquette", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Filets de maquereau grillés, fenouil cru en fines lamelles + roquette + citron + huile olive." },
+  { id: "coquilles-saint-jacques-fenouil", title: "Saint-Jacques poêlées + fenouil", type: "prot-verdure", proteins: ["poisson"], region: "français", notes: "Noix de Saint-Jacques snackées 1 min/face, fenouil braisé doucement, filet d'huile olive + citron." },
+  { id: "gambas-grillees-citron", title: "Gambas grillées + salade + zeste citron", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Gambas décortiquées grillées ail piment, mesclun, zestes de citron, huile olive." },
+  { id: "moules-marinieres-nature", title: "Moules marinières + salade verte", type: "prot-verdure", proteins: ["poisson"], region: "français", notes: "Moules ouvertes 5 min vin blanc, échalote, persil (sans crème). Salade verte à côté." },
+  { id: "sole-brocolis-amandes", title: "Filet de sole + brocolis + amandes effilées", type: "prot-verdure", proteins: ["poisson"], region: "français", notes: "Sole meunière beurre noisette léger, brocolis vapeur, amandes effilées grillées." },
+  { id: "salade-nicoise-revisitee", title: "Salade niçoise revisitée (thon frais)", type: "prot-verdure", proteins: ["poisson"], region: "provençal", notes: "Thon frais mi-cuit, haricots verts vapeur, tomates, olives niçoises, oignon nouveau, basilic. (Sans œuf/sans pdt.)" },
+  { id: "anchois-marines-poivrons", title: "Anchois marinés + poivrons grillés + basilic", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Anchois marinés vinaigre + huile olive, poivrons rôtis pelés, basilic, ail confit." },
+
+  // ============ Œufs (élargi) ============
+  { id: "oeufs-mollets-poireaux-vinaigrette", title: "Œufs mollets + poireaux vinaigrette", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Œufs mollets 6 min, blancs de poireaux vapeur tièdes, vinaigrette moutarde huile olive citron, ciboulette." },
+  { id: "oeufs-cocotte-epinards", title: "Œufs cocotte aux épinards", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Œufs cassés dans ramequins sur lit d'épinards fondus, bain-marie 10 min. Herbes fraîches, huile olive." },
+  { id: "oeufs-mimosa-salade", title: "Œufs mimosa + salade verte", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Œufs durs coupés en 2, jaunes écrasés + moutarde + huile olive + ciboulette. Mesclun." },
+  { id: "frittata-courgettes-basilic", title: "Frittata aux courgettes + basilic", type: "prot-verdure", proteins: ["oeuf"], region: "italien", notes: "Œufs battus + courgettes fines revenues, basilic frais, poêle 5 min chaque face. Roquette." },
+  { id: "oeufs-coque-batonnets", title: "Œufs à la coque + bâtonnets de crudités", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Œufs coque 3 min. Mouillettes en bâtonnets de carotte, concombre, céleri, poivron." },
+  { id: "frittata-champignons-persil", title: "Frittata champignons + persil", type: "prot-verdure", proteins: ["oeuf"], region: "italien", notes: "Œufs + champignons de Paris et pleurotes poêlés persillade, poêle basse temp couvercle." },
+  { id: "omelette-fines-herbes", title: "Omelette baveuse aux fines herbes + salade", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Omelette 3 œufs, cerfeuil persil ciboulette estragon, roulée baveuse. Mesclun huile olive." },
+  { id: "salade-lyonnaise-revisitee", title: "Salade lyonnaise revisitée (sans lardons)", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "Frisée + vinaigrette moutarde chaude vinaigre de xérès, œuf poché tiède dessus." },
+  { id: "oeufs-brouilles-ciboulette-salade", title: "Œufs brouillés doux + ciboulette + salade", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "3 œufs battus, cuits doucement à la spatule (crémeux), ciboulette. Salade verte." },
+
+  // ============ Fromage (élargi) ============
+  { id: "caprese-classique", title: "Caprese classique (mozza tomate basilic)", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Mozza di bufala en tranches, tomates de saison, basilic frais, huile olive, fleur de sel." },
+  { id: "salade-concombre-feta-menthe", title: "Salade concombre feta menthe", type: "prot-verdure", proteins: ["fromage"], region: "grec", notes: "Concombre en rondelles, feta émiettée, menthe fraîche, oignon rouge, citron, huile olive." },
+  { id: "burrata-poivrons-rotis", title: "Burrata + roquette + poivrons rôtis", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Burrata crémeuse sur roquette, poivrons rôtis pelés marinés, basilic, huile olive." },
+  { id: "fromage-blanc-concombre-aneth", title: "Fromage blanc + concombre + aneth", type: "prot-verdure", proteins: ["fromage"], region: "français", notes: "Fromage blanc battu, concombre en dés, aneth, ciboulette, huile olive, poivre. Dîner OK (≤ 0,3% sel)." },
+  { id: "cottage-tomates-basilic", title: "Cottage cheese + tomates cerises + basilic", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Cottage cheese, tomates cerises coupées, basilic, huile olive, poivre. Dîner OK." },
+  { id: "chevre-tiede-salade", title: "Chèvre tiède sur salade (sans pain)", type: "prot-verdure", proteins: ["fromage"], region: "français", notes: "Palet de chèvre passé sous grill, mesclun, noix, vinaigrette huile de noix." },
+  { id: "feta-grillee-tomates", title: "Feta grillée + tomates + herbes", type: "prot-verdure", proteins: ["fromage"], region: "grec", notes: "Bloc de feta au four 10 min avec tomates cerises, origan, huile olive." },
+  { id: "halloumi-grille-menthe", title: "Halloumi grillé + salade menthe concombre", type: "prot-verdure", proteins: ["fromage"], region: "méditerranée", notes: "Halloumi tranché grillé à la poêle, salade concombre menthe citron huile olive." },
+  { id: "mascarpone-baies-amandes", title: "Mascarpone + baies + amandes", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Mascarpone battu, baies fraîches (framboise myrtille), amandes effilées." },
+  { id: "haricots-champi-parmesan", title: "Haricots verts + champignons lamelles + parmesan", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Haricots verts vapeur croquants, champignons de Paris en lamelles CRUES, copeaux de parmesan, huile olive, citron." },
+  { id: "betteraves-mache-ricotta", title: "Betteraves crues + mâche + ricotta + noisettes", type: "prot-verdure", proteins: ["fromage"], region: "français", notes: "Betteraves CRUES en fines lamelles (mandoline), mâche, ricotta, noisettes torréfiées, huile de noix, citron." },
+  { id: "sucrines-thon-fromage-frais", title: "Sucrines farcies au thon + fromage frais", type: "prot-verdure", proteins: ["poisson", "fromage"], region: "français", notes: "Feuilles de sucrines garnies de thon émietté + fromage frais + citron + herbes. (⚠️ Thon + fromage = 2 protéines, à assumer.)" },
+
+  // ============ PV (élargi) ============
+  { id: "pois-chiches-tomates-menthe", title: "Salade pois chiches + tomates concombre menthe", type: "prot-verdure", proteins: ["vege"], region: "méditerranée", notes: "Pois chiches cuits, tomates, concombre, oignon rouge, menthe, citron, huile d'olive, cumin." },
+  { id: "chili-haricots-rouges-veggie", title: "Chili haricots rouges (végétarien)", type: "prot-verdure", proteins: ["vege"], region: "méditerranée", notes: "Haricots rouges mijotés, poivrons, oignons, épices (cumin, piment doux), coriandre. Verdure autour." },
+  { id: "dahl-lentilles-blondes", title: "Dahl aux lentilles blondes + épinards", type: "prot-verdure", proteins: ["vege"], region: "asiatique", notes: "Lentilles blondes fondues avec oignon, ail, gingembre, curcuma, coriandre, épinards en fin." },
+  { id: "tofu-plancha-asiatique", title: "Tofu à la plancha + salade asiatique", type: "prot-verdure", proteins: ["vege"], region: "asiatique", notes: "Tofu ferme mariné soja gingembre ail, plancha, salade chou blanc + carotte + coriandre + sésame grillé." },
+  { id: "lentilles-vertes-carottes-noix", title: "Salade lentilles vertes + carottes râpées + noix", type: "prot-verdure", proteins: ["vege"], region: "français", notes: "Lentilles du Puy, carottes râpées, persil, noix concassées, vinaigrette moutarde huile de noix." },
+  { id: "tempeh-wok-legumes", title: "Tempeh grillé + wok de légumes", type: "prot-verdure", proteins: ["vege"], region: "asiatique", notes: "Tempeh mariné sauce soja, poêlé, wok de légumes croquants (brocoli, poivron), sésame grillé." },
+
+  // ============ Carbs + verdure (élargi) ============
+  { id: "quinoa-legumes-herbes", title: "Salade de quinoa + légumes + herbes", type: "carbs-verdure", proteins: [], region: "méditerranée", notes: "Quinoa cuit tiède, tomates concombre poivron, persil menthe, citron, huile olive." },
+  { id: "riz-legumes-herbes-carbs", title: "Salade de riz + légumes + herbes fraîches", type: "carbs-verdure", proteins: [], region: "méditerranée", notes: "Riz basmati refroidi, tomates concombre poivron olives, basilic, huile olive citron." },
+  { id: "boulgour-tomates-menthe", title: "Boulgour aux herbes + tomates cerises", type: "carbs-verdure", proteins: [], region: "méditerranée", notes: "Boulgour cuit tiède, tomates cerises, persil menthe, oignon nouveau, citron, huile olive." },
+  { id: "puree-potimarron-salade", title: "Purée de potimarron + salade verte", type: "carbs-verdure", proteins: [], region: "français", notes: "Potimarron vapeur écrasé à l'huile d'olive, muscade. Mesclun à côté." },
+  { id: "farro-roquette-tomates", title: "Farro (épeautre) + roquette + tomates", type: "carbs-verdure", proteins: [], region: "italien", notes: "Farro cuit refroidi, roquette, tomates cerises, huile olive, citron, basilic." },
+  { id: "pasta-pomodoro", title: "Pasta al pomodoro (sans fromage)", type: "carbs-verdure", proteins: [], region: "italien", notes: "Spaghetti al dente, sauce tomate longue mijotée (San Marzano), basilic, ail, huile olive." },
+  { id: "patates-nouvelles-herbes", title: "Salade pommes de terre nouvelles + herbes", type: "carbs-verdure", proteins: [], region: "français", notes: "Pdt nouvelles vapeur tièdes, échalote, cornichons, persil ciboulette, moutarde, huile olive." },
+
+  // ============ Fruits (élargi) ============
+  { id: "melon-menthe-poivre", title: "Salade de melon + menthe + poivre", type: "fruits", proteins: [], region: "méditerranée", notes: "Melon en cubes, feuilles de menthe, tour de moulin à poivre, filet de citron vert." },
+  { id: "fruits-exotiques", title: "Fruits exotiques (mangue kiwi ananas fruit passion)", type: "fruits", proteins: [], region: "libre", notes: "Mangue kiwi ananas Victoria en cubes, graines de fruit de la passion." },
+  { id: "smoothie-bowl-fruits-rouges", title: "Smoothie bowl fruits rouges + noix", type: "fruits", proteins: [], region: "libre", notes: "Fruits rouges mixés (myrtille framboise mûre), topping noix + graines de chia." },
+
+  // ============ Récup (élargi) ============
+  { id: "recup-midi-oeufs-roquette", title: "Récup midi : œufs brouillés + roquette", type: "recovery", proteins: ["oeuf"], region: "français", notes: "2 œufs brouillés doux, roquette, huile olive, poivre." },
+  { id: "recup-soir-gaspacho-fruits", title: "Récup soir : gaspacho léger + concombre + fruits", type: "recovery", proteins: [], region: "méditerranée", notes: "Gaspacho tomate concombre poivron maison, bâtonnets concombre, fruits frais, quelques amandes." },
+  { id: "recup-soir-crudites-pomme", title: "Récup soir : bâtonnets crudités + oléagineux + pomme", type: "recovery", proteins: [], region: "français", notes: "Bâtonnets carotte concombre céleri, poignée d'amandes, pomme croquante." },
+  { id: "recup-matin-coque-legumes", title: "Récup matin : œufs coque + légumes verts vapeur", type: "recovery", proteins: ["oeuf"], region: "français", notes: "Œufs à la coque 3 min, brocolis / haricots verts / épinards vapeur, filet d'huile d'olive." }
 ];
 
 const PROTEIN_LABELS = {
@@ -895,6 +1034,7 @@ function renderMuscu() {
 // --- NUTRITION ---
 function renderNutrition() {
   renderMealsInto("nutrition-meals");
+  renderNutritionHistory();
   const m = todayMeals();
   document.getElementById("recovery-btn-label").textContent = m.recovery ? "Sortir du mode récup" : "Mode récup";
   document.getElementById("recovery-status").textContent = m.recovery
@@ -904,37 +1044,64 @@ function renderNutrition() {
   // Recipes
   const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
   const hideDisliked = document.getElementById("hide-disliked")?.checked ?? true;
-  let filtered = state.recipes.filter(r => {
-    const id = recipeId(r);
-    const like = state.likes[id] || 0;
+  const visible = state.recipes.filter(r => {
+    const like = state.likes[recipeId(r)] || 0;
     if (hideDisliked && like === -1) return false;
-    if (filter === "fav") return like === 1;
-    if (filter !== "all" && r.type !== filter) return false;
     return true;
   });
-  document.getElementById("nutrition-recipes").innerHTML = filtered.map(r => {
-    const id = recipeId(r);
-    const like = state.likes[id] || 0;
-    const canDelete = !isSeed(r);
-    return `
-      <div class="recipe">
-        <div class="row spread">
-          <div class="title">${escapeHtml(r.title)}${like === 1 ? " 👍" : ""}${like === -1 ? " 👎" : ""}</div>
-          <div>
-            <button class="ghost small" onclick="setLike('${id}', ${like === 1 ? 0 : 1})">${like === 1 ? "★" : "☆"}</button>
-            <button class="ghost small" onclick="setLike('${id}', ${like === -1 ? 0 : -1})">👎</button>
-          </div>
+
+  let html = "";
+  if (filter === "all") {
+    for (const sec of RECIPE_SECTIONS) {
+      const items = visible.filter(sec.match);
+      if (items.length === 0) continue;
+      html += `<h3 style="margin: 14px 0 6px; color: var(--accent);">${sec.label} <span class="muted" style="font-size:12px;">(${items.length})</span></h3>`;
+      html += items.map(renderRecipeCard).join("");
+    }
+  } else if (filter === "fav") {
+    const items = visible.filter(r => state.likes[recipeId(r)] === 1);
+    html = items.map(renderRecipeCard).join("") || `<p class="muted">Aucun favori pour l'instant.</p>`;
+  } else {
+    const sec = RECIPE_SECTIONS.find(s => s.key === filter);
+    const items = sec ? visible.filter(sec.match) : [];
+    html = items.map(renderRecipeCard).join("") || `<p class="muted">Aucune recette dans cette catégorie.</p>`;
+  }
+  document.getElementById("nutrition-recipes").innerHTML = html;
+}
+
+const RECIPE_SECTIONS = [
+  { key: "viande", label: "🥩 Viande", match: r => (r.proteins || []).includes("viande") },
+  { key: "poisson", label: "🐟 Poisson", match: r => (r.proteins || []).includes("poisson") },
+  { key: "oeuf", label: "🥚 Œuf", match: r => (r.proteins || []).includes("oeuf") },
+  { key: "fromage", label: "🧀 Fromage", match: r => (r.proteins || []).includes("fromage") },
+  { key: "vege", label: "🌱 Protéines végétales", match: r => (r.proteins || []).includes("vege") },
+  { key: "carbs-only", label: "🍞 Carbs + verdure (sans protéine)", match: r => r.type === "carbs-verdure" && (r.proteins || []).length === 0 },
+  { key: "fruits", label: "🍎 Repas fruits", match: r => r.type === "fruits" },
+  { key: "recovery", label: "🥗 Récup", match: r => r.type === "recovery" }
+];
+
+function renderRecipeCard(r) {
+  const id = recipeId(r);
+  const like = state.likes[id] || 0;
+  const canDelete = !isSeed(r);
+  return `
+    <div class="recipe">
+      <div class="row spread">
+        <div class="title">${escapeHtml(r.title)}${like === 1 ? " 👍" : ""}${like === -1 ? " 👎" : ""}</div>
+        <div>
+          <button class="ghost small" onclick="setLike('${id}', ${like === 1 ? 0 : 1})">${like === 1 ? "★" : "☆"}</button>
+          <button class="ghost small" onclick="setLike('${id}', ${like === -1 ? 0 : -1})">👎</button>
         </div>
-        <div class="muted">${escapeHtml(r.notes || "")}</div>
-        <div class="tags">
-          <span class="chip small">${typeLabel(r.type)}</span>
-          ${(r.proteins || []).map(p => `<span class="chip small">${PROTEIN_LABELS[p] || p}</span>`).join("")}
-          ${r.region ? `<span class="chip small" style="opacity:.7;">${escapeHtml(r.region)}</span>` : ""}
-        </div>
-        ${canDelete ? `<button class="ghost small" onclick="deleteRecipeById('${id}')" style="margin-top: 6px;">🗑 Supprimer</button>` : ""}
       </div>
-    `;
-  }).join("") || `<p class="muted">Aucune recette dans cette catégorie.</p>`;
+      <div class="muted">${escapeHtml(r.notes || "")}</div>
+      <div class="tags">
+        <span class="chip small">${typeLabel(r.type)}</span>
+        ${(r.proteins || []).map(p => `<span class="chip small">${PROTEIN_LABELS[p] || p}</span>`).join("")}
+        ${r.region ? `<span class="chip small" style="opacity:.7;">${escapeHtml(r.region)}</span>` : ""}
+      </div>
+      ${canDelete ? `<button class="ghost small" onclick="deleteRecipeById('${id}')" style="margin-top: 6px;">🗑 Supprimer</button>` : ""}
+    </div>
+  `;
 }
 
 function setLike(id, val) {
@@ -960,6 +1127,66 @@ document.querySelectorAll(".filter-chip").forEach(chip => {
 document.addEventListener("change", e => {
   if (e.target.id === "hide-disliked") renderNutrition();
 });
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("hist-chip")) {
+    document.querySelectorAll(".hist-chip").forEach(c => c.classList.remove("active"));
+    e.target.classList.add("active");
+    renderNutritionHistory();
+  }
+});
+
+function renderNutritionHistory() {
+  const range = document.querySelector(".hist-chip.active")?.dataset.hist || "7";
+  const allDates = Object.keys(state.meals).sort().reverse();
+  const dates = range === "all" ? allDates : allDates.slice(0, parseInt(range));
+  const el = document.getElementById("nutrition-history");
+  if (!el) return;
+  if (dates.length === 0) {
+    el.innerHTML = `<p class="muted">Aucun historique nutrition pour l'instant.</p>`;
+    return;
+  }
+  el.innerHTML = dates.map(d => {
+    const m = state.meals[d];
+    if (!m) return "";
+    const goal = waterGoal(d);
+    const waterOK = m.water >= goal;
+    const slots = [
+      { key: "r1", label: "R1" },
+      { key: "r2", label: "R2" },
+      { key: "rf", label: "Fruits" }
+    ];
+    const hasContent = m.r1 || m.r2 || m.rf || m.oleag || m.kiff || m.water > 0;
+    if (!hasContent) return "";
+    return `
+      <div class="recipe">
+        <div class="row spread">
+          <div><strong>${fmtDateLong(d)}</strong>${m.recovery ? " 🥗" : ""}</div>
+          <div style="font-size: 12px;">
+            💧 ${(m.water || 0).toFixed(1)}L${waterOK ? " ✓" : ""}
+            ${m.oleag ? " 🌰" : ""}
+            ${m.kiff > 0 ? " 🍫×" + m.kiff : ""}
+          </div>
+        </div>
+        ${slots.map(s => {
+          const meal = m[s.key];
+          if (!meal) return "";
+          const tags = [
+            ...(meal.proteins || []).map(p => PROTEIN_LABELS[p]),
+            meal.carbs && "carbs",
+            meal.verdure && "verdure",
+            meal.fruits && "fruits"
+          ].filter(Boolean).join(" · ");
+          return `
+            <div style="font-size: 13px; padding: 6px 0; border-top: 1px solid var(--border);">
+              <span class="muted" style="font-weight:600;">${s.label}</span> ${escapeHtml(meal.description || "—")}
+              ${tags ? `<div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${tags}</div>` : ""}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }).filter(Boolean).join("") || `<p class="muted">Aucun repas enregistré dans cette période.</p>`;
+}
 
 function typeLabel(t) {
   return { "prot-verdure": "Prot + verdure", "carbs-verdure": "Carbs + verdure", "fruits": "Repas fruits", "recovery": "Récup" }[t] || t;
@@ -1521,10 +1748,113 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
+// ============ AUTH ============
+
+const AUTH_SALT = "coach-jehanne-2026-x9m3p7q2vFk";
+const MASTER_HASH = ""; // À REMPLIR : hash SHA-256 du mot de passe (généré par le setup)
+const SESSION_KEY = "coach_auth_v1";
+const SESSION_DAYS = 30;
+
+async function sha256(text) {
+  const buf = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function hasValidSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const { expires } = JSON.parse(raw);
+    return Date.now() < expires;
+  } catch { return false; }
+}
+
+function saveSession() {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    expires: Date.now() + SESSION_DAYS * 86400000
+  }));
+}
+
+async function initAuth() {
+  if (!MASTER_HASH) {
+    renderSetupScreen();
+    return;
+  }
+  if (hasValidSession()) {
+    unlockApp();
+    return;
+  }
+  renderLoginScreen();
+}
+
+function unlockApp() {
+  document.getElementById("auth-gate").classList.add("hidden");
+  loadState();
+  render("jour");
+}
+
+function renderLoginScreen() {
+  document.getElementById("auth-content").innerHTML = `
+    <h2>🔒 Coach</h2>
+    <span class="muted">Entre ton mot de passe.</span>
+    <input type="password" id="login-pwd" placeholder="Mot de passe" autofocus>
+    <div id="login-err" style="color: var(--err); font-size: 13px; margin-bottom: 8px; min-height: 18px;"></div>
+    <button class="full" onclick="doLogin()">Ouvrir</button>
+    <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-top: 10px;">
+      <input type="checkbox" id="remember-me" checked style="width:auto;"> Rester connectée 30 jours
+    </label>
+  `;
+  document.getElementById("login-pwd").addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+}
+
+async function doLogin() {
+  const pwd = document.getElementById("login-pwd").value;
+  const err = document.getElementById("login-err");
+  err.textContent = "";
+  if (!pwd) { err.textContent = "Mot de passe requis"; return; }
+  const hash = await sha256(AUTH_SALT + pwd);
+  if (hash !== MASTER_HASH) {
+    err.textContent = "Mot de passe incorrect";
+    return;
+  }
+  if (document.getElementById("remember-me").checked) saveSession();
+  unlockApp();
+}
+
+function renderSetupScreen() {
+  document.getElementById("auth-content").innerHTML = `
+    <h2>🔧 Configuration initiale</h2>
+    <span class="muted">Choisis un mot de passe pour protéger ton app. L'empreinte cryptographique (hash) sera affichée pour être collée dans le code.</span>
+    <input type="password" id="setup-pwd" placeholder="Ton mot de passe" autofocus>
+    <input type="password" id="setup-pwd2" placeholder="Confirme ton mot de passe">
+    <div id="setup-err" style="color: var(--err); font-size: 13px; margin-bottom: 8px; min-height: 18px;"></div>
+    <button class="full" onclick="doSetup()">Générer le hash</button>
+    <div id="setup-result"></div>
+  `;
+}
+
+async function doSetup() {
+  const p1 = document.getElementById("setup-pwd").value;
+  const p2 = document.getElementById("setup-pwd2").value;
+  const err = document.getElementById("setup-err");
+  err.textContent = "";
+  if (!p1 || p1.length < 4) { err.textContent = "Mot de passe trop court (≥ 4 caractères)"; return; }
+  if (p1 !== p2) { err.textContent = "Les deux mots de passe ne correspondent pas"; return; }
+  const hash = await sha256(AUTH_SALT + p1);
+  document.getElementById("setup-result").innerHTML = `
+    <p class="ok" style="margin-top: 14px;">✅ Hash généré. Envoie ce code à Claude pour finaliser :</p>
+    <code>${hash}</code>
+    <button class="secondary full small" onclick="navigator.clipboard.writeText('${hash}').then(()=>alert('Copié !'))">📋 Copier le hash</button>
+    <p class="hint" style="margin-top: 10px;">Retiens bien ton mot de passe, il ne sera stocké nulle part sauf son empreinte.</p>
+  `;
+}
+
 // ============ INIT ============
 
-loadState();
-render("jour");
+initAuth();
 
 </script>
 </body>
