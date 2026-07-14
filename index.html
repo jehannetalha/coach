@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Coach</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💪%3C/text%3E%3C/svg%3E">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card2: #334155;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --accent: #a78bfa;
+  --accent2: #f472b6;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --err: #f87171;
+  --border: #334155;
+  --radius: 14px;
+}
+html, body { height: 100%; overscroll-behavior-y: contain; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  padding-top: env(safe-area-inset-top);
+  font-size: 15px;
+  line-height: 1.45;
+}
+header {
+  padding: 16px 18px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+header .date { color: var(--muted); font-size: 13px; text-transform: capitalize; }
+main { padding: 8px 14px 20px; max-width: 640px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; }
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.card h2 { font-size: 16px; margin-bottom: 10px; font-weight: 600; }
+.card h3 { font-size: 14px; margin: 12px 0 6px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
+.muted { color: var(--muted); font-size: 13px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row.spread { justify-content: space-between; }
+.row.wrap { flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--card2); font-size: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.chip.active { background: var(--accent); color: #1e1b4b; font-weight: 600; }
+.chip.small { padding: 3px 8px; font-size: 11px; }
+button, .btn {
+  font: inherit;
+  background: var(--accent);
+  color: #1e1b4b;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+button:active { opacity: 0.7; }
+button.secondary { background: var(--card2); color: var(--text); }
+button.ghost { background: transparent; color: var(--accent); padding: 6px 8px; }
+button.danger { background: #7f1d1d; color: #fecaca; }
+button.full { width: 100%; }
+button.small { padding: 6px 12px; font-size: 13px; }
+input, textarea, select {
+  font: inherit;
+  background: var(--card2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 8px;
+  width: 100%;
+}
+input:focus, textarea:focus { outline: 2px solid var(--accent); }
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.field { margin-bottom: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.warn {
+  background: rgba(251, 191, 36, 0.1);
+  border-left: 3px solid var(--warn);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 8px;
+  color: #fde68a;
+}
+.err {
+  background: rgba(248, 113, 113, 0.1);
+  border-left: 3px solid var(--err);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 8px;
+  color: #fecaca;
+}
+.ok {
+  background: rgba(52, 211, 153, 0.1);
+  border-left: 3px solid var(--ok);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 8px;
+  color: #a7f3d0;
+}
+.exo {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.exo:last-child { border-bottom: none; }
+.exo-name { font-weight: 600; margin-bottom: 4px; }
+.exo-target { font-size: 12px; color: var(--muted); }
+.sets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.set-pill {
+  background: var(--card2);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.set-pill.done { background: var(--ok); color: #064e3b; }
+.meal-slot {
+  padding: 12px;
+  background: var(--card2);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.meal-slot .name { font-weight: 600; margin-bottom: 6px; }
+.stat {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.stat:last-child { border-bottom: none; }
+.stat .val { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.progress {
+  background: var(--card2); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 6px;
+}
+.progress > div { height: 100%; background: var(--accent); transition: width .3s; }
+.progress.warn > div { background: var(--warn); }
+.progress.err > div { background: var(--err); }
+
+nav.tabs {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  z-index: 100;
+}
+nav.tabs button {
+  flex: 1;
+  background: none;
+  color: var(--muted);
+  padding: 6px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-radius: 0;
+}
+nav.tabs button.active { color: var(--accent); }
+nav.tabs button .ico { font-size: 22px; }
+
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal h2 { margin-bottom: 12px; }
+.modal .close-x { float: right; background: none; color: var(--muted); font-size: 22px; padding: 0; }
+
+.pill-toggle {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--card2);
+  margin: 3px;
+}
+.pill-toggle.on { background: var(--accent); color: #1e1b4b; border-color: var(--accent); font-weight: 600; }
+
+textarea { min-height: 60px; resize: vertical; }
+.hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.recipe {
+  padding: 12px;
+  background: var(--card2);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.recipe .title { font-weight: 600; margin-bottom: 4px; }
+.recipe .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+.session-summary {
+  padding: 10px 12px;
+  background: var(--card2);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.session-summary .date { font-weight: 600; }
+.session-summary .type { color: var(--accent); font-size: 12px; }
+
+pre.report {
+  background: var(--card2);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 40vh;
+  overflow-y: auto;
+  color: var(--muted);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>💪 Coach</h1>
+    <div class="date" id="today-date"></div>
+  </div>
+  <button class="ghost small" onclick="showSettings()">⚙️</button>
+</header>
+
+<main>
+
+<!-- ============ VIEW: JOUR ============ -->
+<section id="view-jour" class="view active">
+
+  <div class="card">
+    <div class="row spread">
+      <h2>Séance du jour</h2>
+      <div id="jour-session-toggle"></div>
+    </div>
+    <div id="jour-session-body"></div>
+  </div>
+
+  <div class="card">
+    <h2>Repas du jour</h2>
+    <div id="jour-meals"></div>
+    <div id="jour-rituals" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎲 Suggestion de repas</h2>
+    <p class="muted" style="margin-bottom: 8px;">Propose une recette compatible avec tes règles, tes favoris et ton compteur carbs.</p>
+    <div class="grid3">
+      <button class="secondary small" onclick="suggestFor('r1')">Repas 1</button>
+      <button class="secondary small" onclick="suggestFor('r2')">Repas 2</button>
+      <button class="secondary small" onclick="suggestFor('rf')">Fruits</button>
+    </div>
+    <div id="jour-suggest" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Cette semaine</h2>
+    <div id="jour-week-stats"></div>
+  </div>
+
+</section>
+
+<!-- ============ VIEW: MUSCU ============ -->
+<section id="view-muscu" class="view">
+
+  <div class="card">
+    <h2>Programme (2 séances / semaine)</h2>
+    <p class="muted">Alterne séance A et B. Objectif : renforcement pour sculpter la silhouette.</p>
+    <div class="grid2" style="margin-top: 10px;">
+      <button onclick="startSession('A')">▶ Séance A<br><span style="font-size:11px;opacity:.8;">Bas + push</span></button>
+      <button onclick="startSession('B')">▶ Séance B<br><span style="font-size:11px;opacity:.8;">Haut + core</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Historique</h2>
+    <div id="muscu-history"></div>
+  </div>
+
+  <div class="card">
+    <h2>Bibliothèque d'exos</h2>
+    <div id="muscu-library"></div>
+  </div>
+
+</section>
+
+<!-- ============ VIEW: NUTRITION ============ -->
+<section id="view-nutrition" class="view">
+
+  <div class="card">
+    <div class="row spread">
+      <h2>Journal du jour</h2>
+      <button class="secondary small" onclick="toggleRecovery()">🥗 <span id="recovery-btn-label">Mode récup</span></button>
+    </div>
+    <p class="muted" id="recovery-status"></p>
+    <div id="nutrition-meals"></div>
+  </div>
+
+  <div class="card">
+    <h2>Règles</h2>
+    <ul style="list-style:none; padding: 0; font-size: 13px; line-height: 1.7;">
+      <li>✓ 2 vrais repas + 1 repas fruits frais (jamais cuits)</li>
+      <li>✓ Pas de grignotage</li>
+      <li>✓ Varier textures, couleurs, épices</li>
+      <li>❌ Éviter mélange de protéines dans un même repas</li>
+      <li>❌ Viande + fromage/laitier = interdit (indigeste)</li>
+      <li>❌ Carbs + protéines : préfère carbs + verdure seule</li>
+      <li>⚠️ Carbs max 3-4 repas/semaine (pain, féculents et légumes high-carbs compris)</li>
+      <li>🫒 Gras cru OK (huile d'olive, colza, noix…) ; ❌ gras cuit longtemps = indigeste et fait grossir</li>
+      <li>🧀 Dîner : préférer fromages à ≤ 0,3% sel (voir aide-mémoire)</li>
+      <li>💧 Eau : 2 L / jour (+ 0,5 L les jours de sport = 2,5 L)</li>
+      <li>🌰 Oléagineux tous les jours</li>
+      <li>🍫 Kiff : 2 carrés chocolat noir aux éclats de fève de cacao + beurre de cacahuète crunchy, en fin de repas</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Aide-mémoire</h2>
+
+    <h3>4 protéines animales</h3>
+    <div class="row wrap" style="gap: 6px;">
+      <span class="chip small">V — Viandes</span>
+      <span class="chip small">P — Poissons</span>
+      <span class="chip small">O — Œufs</span>
+      <span class="chip small">F — Fromages</span>
+    </div>
+
+    <h3>8 protéines végétales (PV)</h3>
+    <div class="row wrap" style="gap: 6px;">
+      <span class="chip small">Lentilles</span>
+      <span class="chip small">Pois-chiches</span>
+      <span class="chip small">Pois cassés</span>
+      <span class="chip small">Fèves</span>
+      <span class="chip small">Haricots rouges</span>
+      <span class="chip small">Haricots blancs</span>
+      <span class="chip small">Haricots noirs</span>
+      <span class="chip small">Soja (tofu, tempeh…)</span>
+    </div>
+
+    <h3>10 légumes High Carbs (comptent comme carbs)</h3>
+    <div class="row wrap" style="gap: 6px;">
+      <span class="chip small">🥔 Pomme de terre</span>
+      <span class="chip small">Topinambour</span>
+      <span class="chip small">Panais</span>
+      <span class="chip small">🎃 Courge</span>
+      <span class="chip small">Citrouille</span>
+      <span class="chip small">Potimarron</span>
+      <span class="chip small">🥕 Carotte cuite</span>
+      <span class="chip small">Navet cuit</span>
+      <span class="chip small">Betterave cuite</span>
+      <span class="chip small">Patate douce (mid)</span>
+    </div>
+    <p class="hint">💡 Cru = verdure ; cuits ces légumes passent en carbs.</p>
+
+    <h3>7 fromages ≤ 0,3% sel (OK à dîner)</h3>
+    <div class="row wrap" style="gap: 6px;">
+      <span class="chip small">Mozzarella</span>
+      <span class="chip small">Burrata</span>
+      <span class="chip small">Stracciatella</span>
+      <span class="chip small">Cottage cheese</span>
+      <span class="chip small">Fromage blanc</span>
+      <span class="chip small">Ricotta</span>
+      <span class="chip small">Mascarpone</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row spread">
+      <h2>Recettes</h2>
+      <button class="ghost small" onclick="openRecipeModal()">＋ Ajouter</button>
+    </div>
+    <div class="row wrap" style="margin: 8px 0;">
+      <span class="chip small filter-chip active" data-filter="all">Toutes</span>
+      <span class="chip small filter-chip" data-filter="prot-verdure">Prot + verdure</span>
+      <span class="chip small filter-chip" data-filter="carbs-verdure">Carbs + verdure</span>
+      <span class="chip small filter-chip" data-filter="fruits">Repas fruits</span>
+      <span class="chip small filter-chip" data-filter="recovery">Récup</span>
+      <span class="chip small filter-chip" data-filter="fav">👍 Favorites</span>
+    </div>
+    <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-bottom:8px;">
+      <input type="checkbox" id="hide-disliked" checked style="width:auto;"> Cacher les refusées (👎)
+    </label>
+    <div id="nutrition-recipes"></div>
+  </div>
+
+</section>
+
+<!-- ============ VIEW: BILAN ============ -->
+<section id="view-bilan" class="view">
+
+  <div class="card">
+    <h2>Semaine en cours</h2>
+    <div id="bilan-week"></div>
+  </div>
+
+  <div class="card">
+    <h2>Bilan pour Claude</h2>
+    <p class="muted">Copie ce texte et colle-le dans une conversation Claude pour avoir des recommandations perso.</p>
+    <pre class="report" id="bilan-report"></pre>
+    <div class="row" style="margin-top: 10px;">
+      <button class="full" onclick="copyReport()">📋 Copier le bilan</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Données</h2>
+    <div class="grid2">
+      <button class="secondary small" onclick="exportData()">⬇ Exporter</button>
+      <button class="secondary small" onclick="importData()">⬆ Importer</button>
+    </div>
+    <button class="danger small full" style="margin-top: 8px;" onclick="resetData()">🗑 Tout effacer</button>
+  </div>
+
+</section>
+
+</main>
+
+<!-- ============ TAB BAR ============ -->
+<nav class="tabs">
+  <button class="active" data-tab="jour"><span class="ico">📅</span>Jour</button>
+  <button data-tab="muscu"><span class="ico">🏋️</span>Muscu</button>
+  <button data-tab="nutrition"><span class="ico">🥑</span>Nutrition</button>
+  <button data-tab="bilan"><span class="ico">📊</span>Bilan</button>
+</nav>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target.id==='modal-bg')closeModal()">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script>
+// ============ CONSTANTS ============
+
+const PROGRAM = {
+  A: {
+    name: "Séance A — Bas + push",
+    color: "#a78bfa",
+    exercises: [
+      { name: "Squat (ou goblet squat)", target: "Cuisses + fessiers", sets: 4, reps: "10", rest: 90 },
+      { name: "Fente arrière alternée", target: "Fessiers + cuisses", sets: 3, reps: "12 / jambe", rest: 60 },
+      { name: "Hip thrust", target: "Fessiers", sets: 4, reps: "12", rest: 90 },
+      { name: "Pompes (ou pompes genoux)", target: "Poitrine + triceps", sets: 3, reps: "max", rest: 60 },
+      { name: "Élévations latérales", target: "Épaules", sets: 3, reps: "15", rest: 45 },
+      { name: "Gainage planche", target: "Sangle abdo", sets: 3, reps: "30-60s", rest: 45 }
+    ]
+  },
+  B: {
+    name: "Séance B — Haut + core",
+    color: "#f472b6",
+    exercises: [
+      { name: "Soulevé de terre roumain", target: "Ischios + fessiers", sets: 4, reps: "10", rest: 90 },
+      { name: "Rowing haltère", target: "Dos", sets: 3, reps: "12 / bras", rest: 60 },
+      { name: "Développé militaire", target: "Épaules", sets: 3, reps: "10", rest: 60 },
+      { name: "Curl biceps", target: "Biceps", sets: 3, reps: "12", rest: 45 },
+      { name: "Extension triceps", target: "Triceps", sets: 3, reps: "12", rest: 45 },
+      { name: "Vélo abdo (crunch obliques)", target: "Obliques", sets: 3, reps: "20", rest: 45 },
+      { name: "Gainage latéral", target: "Obliques + gainage", sets: 3, reps: "20s / côté", rest: 45 }
+    ]
+  }
+};
+
+const EXO_LIBRARY = [
+  { name: "Squat", target: "Cuisses, fessiers", tip: "Pieds largeur épaules, descendre en poussant les fesses en arrière, dos droit, genoux dans l'axe des pieds." },
+  { name: "Goblet squat", target: "Cuisses, fessiers", tip: "Haltère tenue verticalement contre la poitrine. Descends bien bas, coudes entre les genoux." },
+  { name: "Hip thrust", target: "Fessiers", tip: "Dos calé sur canapé/banc, haltère sur le bas-ventre, poussée hanches vers le plafond, serre les fesses en haut 1s." },
+  { name: "Fente arrière", target: "Fessiers, cuisses", tip: "Grand pas en arrière, genou avant à 90°, remonte en poussant sur le talon avant." },
+  { name: "Soulevé de terre roumain", target: "Ischios, fessiers, lombaires", tip: "Jambes quasi tendues, dos plat, descends l'haltère le long des jambes en poussant les fesses en arrière." },
+  { name: "Rowing haltère", target: "Dos (grand dorsal)", tip: "Un genou et main sur banc, tirer l'haltère vers la hanche, coude serré près du corps." },
+  { name: "Pompes", target: "Pectoraux, triceps, épaules", tip: "Corps gainé, coudes à 45° du corps, descendre poitrine près du sol. Version genoux OK au début." },
+  { name: "Développé militaire", target: "Épaules", tip: "Debout ou assis dos droit, haltères au niveau des épaules, pousse au-dessus de la tête sans cambrer." },
+  { name: "Élévations latérales", target: "Épaules (deltoïdes)", tip: "Bras légèrement fléchis, monte les haltères jusqu'à l'horizontale, coudes légèrement plus haut que les poignets." },
+  { name: "Curl biceps", target: "Biceps", tip: "Coudes collés au corps, remonte l'haltère sans balancer, contrôle la descente." },
+  { name: "Extension triceps", target: "Triceps", tip: "Haltère derrière la tête à deux mains, monte en tendant les bras, coudes vers le plafond." },
+  { name: "Planche gainage", target: "Abdos, gainage global", tip: "Sur avant-bras, corps aligné, ne pas cambrer, ne pas relever les fesses. Souffle." },
+  { name: "Gainage latéral", target: "Obliques, gainage", tip: "Sur un avant-bras, corps aligné, hanche décollée du sol, changer de côté." },
+  { name: "Crunch obliques (vélo)", target: "Obliques, abdos", tip: "Allongée, ramène coude et genou opposé, sans tirer sur la nuque." },
+  { name: "Fessiers pont", target: "Fessiers", tip: "Allongée dos au sol, pieds à plat, pousse les hanches vers le plafond, serre en haut." }
+];
+
+const SEED_RECIPES = [
+  // Prot + verdure — méditerranéen / français
+  { id: "poulet-citron-olives", title: "Poulet aux olives et citron confit", type: "prot-verdure", proteins: ["viande"], region: "méditerranée", notes: "Cuisses de poulet mijotées avec olives vertes, citron confit, thym, oignons. Verdure : haricots verts vapeur." },
+  { id: "veau-sauge-roquette", title: "Escalope de veau à la sauge + roquette parmesan", type: "prot-verdure", proteins: ["viande"], region: "italien", notes: "Escalope poêlée au beurre + feuilles de sauge, roquette au citron. (Sans parmesan si tu veux respecter la règle mono-protéine.)" },
+  { id: "filet-mignon-ratatouille", title: "Filet mignon de veau + ratatouille", type: "prot-verdure", proteins: ["viande"], region: "provençal", notes: "Filet mignon rôti aux herbes de Provence, ratatouille maison (aubergine, courgette, poivron, tomate)." },
+  { id: "dorade-fenouil", title: "Dorade au four + fenouil braisé + citron", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Dorade entière au four avec fenouil, tomates cerises, olives noires, citron, thym." },
+  { id: "sardines-grillees-salade", title: "Sardines grillées + salade tomate concombre olives", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Sardines fraîches grillées + salade tomate concombre olives Kalamata basilic huile d'olive." },
+  { id: "loup-herbes-provence", title: "Loup au four + herbes de Provence + courgettes", type: "prot-verdure", proteins: ["poisson"], region: "provençal", notes: "Loup (bar) rôti aux herbes de Provence, courgettes vapeur, tomates cerises confites, citron." },
+  { id: "tartare-dorade-avocat", title: "Tartare de dorade + avocat + coriandre", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Dorade crue en petits dés, avocat, tomate cerise, échalote, coriandre, citron vert, huile olive." },
+  { id: "calamars-grilles-roquette", title: "Calamars grillés + roquette + citron", type: "prot-verdure", proteins: ["poisson"], region: "méditerranée", notes: "Encornets grillés à la plancha (ail, persil, piment d'Espelette), roquette + citron + huile olive." },
+  { id: "oeufs-poches-epinards", title: "Œufs pochés + épinards à l'ail + huile olive", type: "prot-verdure", proteins: ["oeuf"], region: "français", notes: "2 œufs pochés sur lit d'épinards frais fondus à l'ail, huile d'olive, pincée de piment." },
+  { id: "omelette-herbes-salade", title: "Omelette aux herbes de Provence + salade verte", type: "prot-verdure", proteins: ["oeuf"], region: "provençal", notes: "Omelette baveuse aux herbes fraîches (persil, cerfeuil, ciboulette), mesclun à l'huile d'olive." },
+  { id: "salade-grecque", title: "Salade grecque (feta olives)", type: "prot-verdure", proteins: ["fromage"], region: "grec", notes: "Tomates, concombre, oignon rouge, poivron vert, olives noires, feta, origan, huile d'olive." },
+  { id: "burrata-tomates-basilic", title: "Burrata + tomates cœur de bœuf + basilic", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Belle burrata + tomates anciennes, basilic frais, huile d'olive, fleur de sel, poivre. Roquette autour." },
+  { id: "mozza-aubergines-grillees", title: "Mozzarella + aubergines grillées + menthe", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Aubergines en tranches grillées, mozzarella di bufala, menthe fraîche, huile d'olive, citron." },
+  { id: "ricotta-crudites-herbes", title: "Ricotta + crudités + herbes fraîches", type: "prot-verdure", proteins: ["fromage"], region: "italien", notes: "Ricotta fraîche, radis, concombre, tomates cerises, ciboulette, huile d'olive, pain complet optionnel." },
+  { id: "lentilles-corail-epinards", title: "Lentilles corail + épinards + curcuma", type: "prot-verdure", proteins: ["vege"], region: "méditerranée", notes: "Lentilles corail au lait de coco (léger), curcuma, cumin, épinards frais, oignon rouge, coriandre." },
+  { id: "salade-lentilles-vertes", title: "Salade de lentilles vertes + tomates + herbes", type: "prot-verdure", proteins: ["vege"], region: "français", notes: "Lentilles du Puy, échalote, tomates, persil, vinaigrette moutarde huile d'olive citron." },
+  { id: "tofu-grille-wok", title: "Tofu grillé + wok de légumes + sésame", type: "prot-verdure", proteins: ["vege"], region: "asiatique", notes: "Tofu ferme mariné (soja, gingembre, ail), poivrons brocoli courgette au wok, sésame torréfié." },
+
+  // Carbs + verdure — méditerranéen
+  { id: "pates-tomates-basilic", title: "Pâtes fraîches tomates confites basilic olives", type: "carbs-verdure", proteins: [], region: "italien", notes: "Pâtes fraîches, tomates confites, olives noires, basilic frais, huile olive, ail. (Sans parmesan.)" },
+  { id: "risotto-champignons-herbes", title: "Risotto aux champignons + herbes (sans parmesan)", type: "carbs-verdure", proteins: [], region: "italien", notes: "Risotto aux champignons de Paris + shiitake, thym, persil. (Sans parmesan pour respecter mono-nutriment.)" },
+  { id: "panzanella", title: "Panzanella (salade toscane pain rassis)", type: "carbs-verdure", proteins: [], region: "italien", notes: "Pain rassis trempé, tomates, concombre, oignon rouge, basilic, câpres, huile d'olive, vinaigre." },
+  { id: "bruschette-tomates", title: "Bruschette pain complet tomates basilic", type: "carbs-verdure", proteins: [], region: "italien", notes: "Pain complet grillé frotté ail, tomates marinées basilic huile olive fleur de sel." },
+  { id: "gnocchi-sauce-tomate", title: "Gnocchi + sauce tomate maison + roquette", type: "carbs-verdure", proteins: [], region: "italien", notes: "Gnocchi maison ou du commerce, sauce tomate basilic ail longue cuisson, roquette." },
+  { id: "riz-basmati-legumes", title: "Riz basmati + légumes provençaux", type: "carbs-verdure", proteins: [], region: "provençal", notes: "Riz basmati, poivrons courgettes aubergines rôtis, thym, romarin, huile d'olive." },
+  { id: "patate-douce-mesclun", title: "Patate douce rôtie + mesclun + graines", type: "carbs-verdure", proteins: [], region: "méditerranée", notes: "Cubes de patate douce rôtis (paprika fumé, cumin), mesclun, graines de courge, huile d'olive." },
+  { id: "potiron-roti-salade", title: "Potiron rôti + salade + graines", type: "carbs-verdure", proteins: [], region: "français", notes: "Potiron rôti au four (cannelle, thym), salade de mâche, graines de tournesol, huile de noix." },
+
+  // Fruits
+  { id: "fruits-rouges-amandes", title: "Bowl fruits rouges + amandes", type: "fruits", proteins: [], region: "français", notes: "Fraises, framboises, myrtilles, mûres selon saison + poignée d'amandes." },
+  { id: "salade-agrumes-noix", title: "Salade d'agrumes + noix", type: "fruits", proteins: [], region: "méditerranée", notes: "Oranges, pamplemousse, mandarine tranchés, filet de fleur d'oranger optionnel, noix." },
+  { id: "fruits-ete-noisettes", title: "Fruits d'été (pêche abricot cerise) + noisettes", type: "fruits", proteins: [], region: "provençal", notes: "Pêches jaunes, abricots, cerises + poignée de noisettes torréfiées." },
+  { id: "ananas-macadamia", title: "Ananas frais + noix de macadamia", type: "fruits", proteins: [], region: "libre", notes: "Ananas Victoria bien mûr en tranches + noix de macadamia." },
+  { id: "bowl-fruits-saison", title: "Bowl fruits frais de saison", type: "fruits", proteins: [], region: "libre", notes: "Selon saison : kiwi, orange, pomme, poire, banane. Aucune cuisson." },
+
+  // Récup
+  { id: "recup-matin-oeufs-epinards", title: "Récup matin : œufs + épinards", type: "recovery", proteins: ["oeuf"], region: "français", notes: "2 œufs (au plat, brouillés ou coque), grande poignée d'épinards ou mâche, filet d'huile d'olive." },
+  { id: "recup-matin-omelette-blanche", title: "Récup matin : omelette blanche épinards tomates", type: "recovery", proteins: ["oeuf"], region: "français", notes: "Omelette 2 blancs + 1 jaune, épinards frais, tomates cerises, herbes." },
+  { id: "recup-soir-tomates-concombre-fruits", title: "Récup soir : tomates concombre fruits + oléagineux", type: "recovery", proteins: [], region: "français", notes: "Tomates, concombre, herbes fraîches (basilic menthe), fruits frais, poignée d'amandes." },
+  { id: "recup-soir-salade-menthe", title: "Récup soir : salade tomate menthe amandes + fruit rouge", type: "recovery", proteins: [], region: "méditerranée", notes: "Salade tomates concombre menthe basilic olives, quelques amandes, petits fruits rouges." }
+];
+
+const PROTEIN_LABELS = {
+  viande: "Viande",
+  poisson: "Poisson",
+  oeuf: "Œuf",
+  vege: "Végétale (tofu, lentilles…)",
+  fromage: "Fromage / laitier"
+};
+
+const DAYS_FR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+const MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+
+// ============ STATE ============
+
+let state = {
+  sessions: {},      // { "YYYY-MM-DD": { type: "A"|"B", exercises: [{name, sets: [{reps, weight}]}] } }
+  meals: {},         // { "YYYY-MM-DD": { r1: MealObj, r2: MealObj, rf: MealObj, oleag, kiff, recovery, water } }
+  recipes: [],       // fusionné à loadState avec SEED_RECIPES
+  likes: {},         // { recipeId: 1 (favori) | -1 (refusée) }
+  active_session: null,
+  suggestion: null   // { slot, recipeId } — dernière suggestion pour affichage
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem("coach_state_v1");
+    if (raw) {
+      const s = JSON.parse(raw);
+      state = { ...state, ...s };
+    }
+  } catch (e) { console.error(e); }
+  const seedIds = new Set(SEED_RECIPES.map(r => r.id));
+  const customs = (state.recipes || []).filter(r => r.id && !seedIds.has(r.id));
+  state.recipes = [...SEED_RECIPES, ...customs];
+  if (!state.likes) state.likes = {};
+}
+
+function slugify(s) {
+  return String(s).toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+}
+function recipeId(r) { return r.id || slugify(r.title); }
+function isSeed(r) { return SEED_RECIPES.some(s => s.id === r.id); }
+
+function saveState() {
+  localStorage.setItem("coach_state_v1", JSON.stringify(state));
+}
+
+// ============ HELPERS ============
+
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fromISO(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function fmtDateLong(iso) {
+  const d = fromISO(iso);
+  return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;
+}
+function getMondayOfWeek(d = new Date()) {
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diff);
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+function daysOfWeek() {
+  const monday = getMondayOfWeek();
+  return [...Array(7)].map((_,i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return isoDate(d);
+  });
+}
+function todayMeals() {
+  const today = todayISO();
+  if (!state.meals[today]) {
+    state.meals[today] = { r1: null, r2: null, rf: null, oleag: false, kiff: 0, recovery: false, water: 0 };
+  }
+  if (state.meals[today].water === undefined) state.meals[today].water = 0;
+  return state.meals[today];
+}
+
+function waterGoal(dateISO) {
+  return state.sessions[dateISO] ? 2.5 : 2.0;
+}
+
+// ============ NAV ============
+
+document.querySelectorAll("nav.tabs button").forEach(btn => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
+
+function switchTab(name) {
+  document.querySelectorAll("nav.tabs button").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === name);
+  });
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  render(name);
+  window.scrollTo(0, 0);
+}
+
+// ============ RENDER ============
+
+function render(tab) {
+  tab = tab || currentTab();
+  if (tab === "jour") renderJour();
+  if (tab === "muscu") renderMuscu();
+  if (tab === "nutrition") renderNutrition();
+  if (tab === "bilan") renderBilan();
+}
+function currentTab() {
+  const b = document.querySelector("nav.tabs button.active");
+  return b ? b.dataset.tab : "jour";
+}
+
+function renderAll() { render(currentTab()); }
+
+// --- JOUR ---
+function renderJour() {
+  const today = todayISO();
+  document.getElementById("today-date").textContent = fmtDateLong(today);
+
+  // Session
+  const s = state.sessions[today];
+  const active = state.active_session;
+  const box = document.getElementById("jour-session-body");
+  const toggle = document.getElementById("jour-session-toggle");
+  if (active && active.date === today) {
+    toggle.innerHTML = `<span class="chip" style="background:var(--warn);color:#78350f;">En cours</span>`;
+    box.innerHTML = renderActiveSession();
+  } else if (s) {
+    toggle.innerHTML = `<span class="chip" style="background:var(--ok);color:#064e3b;">Fait ✓</span>`;
+    box.innerHTML = renderCompletedSession(s);
+  } else {
+    toggle.innerHTML = "";
+    const suggested = suggestNextSession();
+    box.innerHTML = `
+      <p class="muted">Pas encore de séance aujourd'hui. Prochaine suggérée : <strong>${suggested}</strong></p>
+      <div class="grid2" style="margin-top: 10px;">
+        <button onclick="startSession('A')">▶ Séance A</button>
+        <button onclick="startSession('B')">▶ Séance B</button>
+      </div>
+    `;
+  }
+
+  // Meals
+  renderMealsInto("jour-meals");
+
+  // Rituals
+  const m = todayMeals();
+  const goal = waterGoal(today);
+  const waterPct = Math.min(100, m.water / goal * 100);
+  const waterClass = m.water >= goal ? "ok" : m.water >= goal * 0.5 ? "" : "warn";
+  document.getElementById("jour-rituals").innerHTML = `
+    <div style="margin-top: 6px;">
+      <div class="row spread" style="margin-bottom: 4px;">
+        <span style="font-size: 13px;">💧 Eau <strong>${m.water.toFixed(2)} L</strong> / ${goal.toFixed(1)} L${state.sessions[today] ? ' (jour sport)' : ''}</span>
+        <span>
+          <button class="ghost small" onclick="addWater(-0.25)">−</button>
+          <button class="ghost small" onclick="addWater(0.25)">+ 25 cl</button>
+        </span>
+      </div>
+      <div class="progress ${waterClass}"><div style="width: ${waterPct}%"></div></div>
+    </div>
+    <div class="row wrap" style="gap: 8px; margin-top: 12px;">
+      <span class="pill-toggle ${m.oleag ? 'on' : ''}" onclick="toggleOleag()">🌰 Oléagineux ${m.oleag ? '✓' : ''}</span>
+      <span class="pill-toggle ${m.kiff > 0 ? 'on' : ''}" onclick="incrementKiff()">🍫 Kiff × ${m.kiff}</span>
+    </div>
+  `;
+
+  // Suggestion (restaure l'affichage entre navigations)
+  renderSuggestion();
+
+  // Week stats
+  const stats = weekStats();
+  document.getElementById("jour-week-stats").innerHTML = `
+    <div class="stat"><span>Séances</span><span class="val">${stats.sessions} / 2</span></div>
+    <div class="stat"><span>Repas carbs</span><span class="val">${stats.carbs} / 4</span>
+      <div class="progress ${stats.carbs > 4 ? 'err' : stats.carbs > 3 ? 'warn' : ''}" style="grid-column: 1/-1;">
+        <div style="width: ${Math.min(100, stats.carbs / 4 * 100)}%"></div>
+      </div>
+    </div>
+    <div class="stat"><span>Hydratation OK</span><span class="val">${stats.waterOK} / 7 j</span></div>
+    <div class="stat"><span>Oléagineux</span><span class="val">${stats.oleag} / 7 j</span></div>
+    <div class="stat"><span>Jours récup</span><span class="val">${stats.recovery}</span></div>
+  `;
+}
+
+function suggestNextSession() {
+  const dates = Object.keys(state.sessions).sort();
+  if (dates.length === 0) return "Séance A";
+  const last = state.sessions[dates[dates.length - 1]];
+  return last.type === "A" ? "Séance B" : "Séance A";
+}
+
+function suggestFor(slotKey) {
+  const stats = weekStats();
+  const carbsAllowed = stats.carbs < 4;
+  const today = todayISO();
+  const yesterday = isoDate(new Date(Date.now() - 86400000));
+  const yMeals = state.meals[yesterday] || {};
+  const usedYesterdayIds = new Set([yMeals.r1?.recipeId, yMeals.r2?.recipeId, yMeals.rf?.recipeId].filter(Boolean));
+
+  let candidates = state.recipes.filter(r => {
+    const id = recipeId(r);
+    if (state.likes[id] === -1) return false;
+    if (usedYesterdayIds.has(id)) return false;
+    if (slotKey === "rf") return r.type === "fruits";
+    if (r.type === "fruits") return false;
+    if (r.type === "carbs-verdure" && !carbsAllowed) return false;
+    return true;
+  });
+  if (candidates.length === 0) {
+    document.getElementById("jour-suggest").innerHTML = `<p class="warn">Aucune recette compatible trouvée. Débloque un dislike, ou ajoute une nouvelle recette.</p>`;
+    return;
+  }
+  const liked = candidates.filter(r => state.likes[recipeId(r)] === 1);
+  const pool = liked.length > 0 ? liked : candidates;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  state.suggestion = { slot: slotKey, recipeId: recipeId(pick) };
+  saveState();
+  renderSuggestion();
+}
+
+function renderSuggestion() {
+  const el = document.getElementById("jour-suggest");
+  if (!el) return;
+  if (!state.suggestion) { el.innerHTML = ""; return; }
+  const r = state.recipes.find(x => recipeId(x) === state.suggestion.recipeId);
+  if (!r) { el.innerHTML = ""; return; }
+  const slotLabels = { r1: "Repas 1", r2: "Repas 2", rf: "Repas fruits" };
+  const id = recipeId(r);
+  el.innerHTML = `
+    <div class="recipe" style="background: rgba(167,139,250,.1); border: 1px solid var(--accent);">
+      <div class="muted" style="font-size: 12px;">Pour ${slotLabels[state.suggestion.slot]}</div>
+      <div class="title">${escapeHtml(r.title)}</div>
+      <div class="muted">${escapeHtml(r.notes || "")}</div>
+      <div class="tags">
+        <span class="chip small">${typeLabel(r.type)}</span>
+        ${(r.proteins || []).map(p => `<span class="chip small">${PROTEIN_LABELS[p]}</span>`).join("")}
+        ${r.region ? `<span class="chip small" style="opacity:.7;">${escapeHtml(r.region)}</span>` : ""}
+      </div>
+      <div class="grid2" style="margin-top: 10px;">
+        <button class="secondary small" onclick="suggestFor('${state.suggestion.slot}')">🎲 Autre</button>
+        <button class="small" onclick="applySuggestion()">Utiliser ✓</button>
+      </div>
+    </div>
+  `;
+}
+
+function applySuggestion() {
+  if (!state.suggestion) return;
+  const r = state.recipes.find(x => recipeId(x) === state.suggestion.recipeId);
+  if (!r) return;
+  const m = todayMeals();
+  const isHighCarbVeg = /(potiron|potimarron|patate douce|courge|citrouille|pomme de terre|topinambour|panais|betterave cuite|navet cuit|carotte cuite)/i.test(r.title + " " + (r.notes || ""));
+  m[state.suggestion.slot] = {
+    description: r.title + (r.notes ? " — " + r.notes : ""),
+    proteins: r.proteins || [],
+    carbs: r.type === "carbs-verdure" || isHighCarbVeg,
+    verdure: r.type === "prot-verdure" || r.type === "carbs-verdure" || r.type === "recovery",
+    fruits: r.type === "fruits" || /(fruit|amande|noix|noisette|myrtille|framboise|fraise|abricot|pêche|cerise)/i.test(r.notes || ""),
+    recipeId: recipeId(r)
+  };
+  state.suggestion = null;
+  saveState();
+  renderAll();
+}
+
+// --- MUSCU ---
+function renderMuscu() {
+  // History
+  const dates = Object.keys(state.sessions).sort().reverse();
+  const hist = document.getElementById("muscu-history");
+  if (dates.length === 0) {
+    hist.innerHTML = `<p class="muted">Aucune séance encore. Lance-toi !</p>`;
+  } else {
+    hist.innerHTML = dates.slice(0, 15).map(d => {
+      const s = state.sessions[d];
+      const totalSets = s.exercises.reduce((n, e) => n + e.sets.length, 0);
+      return `
+        <div class="session-summary" onclick="showSessionDetail('${d}')">
+          <div>
+            <div class="date">${fmtDateLong(d)}</div>
+            <div class="type">${PROGRAM[s.type].name}</div>
+          </div>
+          <div class="muted">${totalSets} séries</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Library
+  document.getElementById("muscu-library").innerHTML = EXO_LIBRARY.map(e => `
+    <div class="exo">
+      <div class="exo-name">${e.name}</div>
+      <div class="exo-target">${e.target}</div>
+      <div class="hint">${e.tip}</div>
+    </div>
+  `).join("");
+}
+
+// --- NUTRITION ---
+function renderNutrition() {
+  renderMealsInto("nutrition-meals");
+  const m = todayMeals();
+  document.getElementById("recovery-btn-label").textContent = m.recovery ? "Sortir du mode récup" : "Mode récup";
+  document.getElementById("recovery-status").textContent = m.recovery
+    ? "🥗 Mode récup activé : déj œufs+verdure, soir tomates+concombre+fruits+oléagineux."
+    : "";
+
+  // Recipes
+  const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
+  const hideDisliked = document.getElementById("hide-disliked")?.checked ?? true;
+  let filtered = state.recipes.filter(r => {
+    const id = recipeId(r);
+    const like = state.likes[id] || 0;
+    if (hideDisliked && like === -1) return false;
+    if (filter === "fav") return like === 1;
+    if (filter !== "all" && r.type !== filter) return false;
+    return true;
+  });
+  document.getElementById("nutrition-recipes").innerHTML = filtered.map(r => {
+    const id = recipeId(r);
+    const like = state.likes[id] || 0;
+    const canDelete = !isSeed(r);
+    return `
+      <div class="recipe">
+        <div class="row spread">
+          <div class="title">${escapeHtml(r.title)}${like === 1 ? " 👍" : ""}${like === -1 ? " 👎" : ""}</div>
+          <div>
+            <button class="ghost small" onclick="setLike('${id}', ${like === 1 ? 0 : 1})">${like === 1 ? "★" : "☆"}</button>
+            <button class="ghost small" onclick="setLike('${id}', ${like === -1 ? 0 : -1})">👎</button>
+          </div>
+        </div>
+        <div class="muted">${escapeHtml(r.notes || "")}</div>
+        <div class="tags">
+          <span class="chip small">${typeLabel(r.type)}</span>
+          ${(r.proteins || []).map(p => `<span class="chip small">${PROTEIN_LABELS[p] || p}</span>`).join("")}
+          ${r.region ? `<span class="chip small" style="opacity:.7;">${escapeHtml(r.region)}</span>` : ""}
+        </div>
+        ${canDelete ? `<button class="ghost small" onclick="deleteRecipeById('${id}')" style="margin-top: 6px;">🗑 Supprimer</button>` : ""}
+      </div>
+    `;
+  }).join("") || `<p class="muted">Aucune recette dans cette catégorie.</p>`;
+}
+
+function setLike(id, val) {
+  state.likes[id] = val;
+  if (val === 0) delete state.likes[id];
+  saveState();
+  renderAll();
+}
+function deleteRecipeById(id) {
+  if (!confirm("Supprimer cette recette ?")) return;
+  state.recipes = state.recipes.filter(r => recipeId(r) !== id);
+  saveState();
+  renderAll();
+}
+
+document.querySelectorAll(".filter-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    renderNutrition();
+  });
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "hide-disliked") renderNutrition();
+});
+
+function typeLabel(t) {
+  return { "prot-verdure": "Prot + verdure", "carbs-verdure": "Carbs + verdure", "fruits": "Repas fruits", "recovery": "Récup" }[t] || t;
+}
+
+function renderMealsInto(elemId) {
+  const m = todayMeals();
+  const slots = [
+    { key: "r1", label: "Repas 1", icon: "🍽" },
+    { key: "r2", label: "Repas 2", icon: "🍽" },
+    { key: "rf", label: "Repas fruits (cru)", icon: "🍎" }
+  ];
+  document.getElementById(elemId).innerHTML = slots.map(s => {
+    const meal = m[s.key];
+    if (!meal) {
+      return `
+        <div class="meal-slot">
+          <div class="name">${s.icon} ${s.label}</div>
+          <button class="secondary small" onclick="openMealModal('${s.key}')">＋ Enregistrer</button>
+        </div>
+      `;
+    }
+    const warns = checkMealWarnings(meal, s.key);
+    return `
+      <div class="meal-slot">
+        <div class="row spread">
+          <div class="name">${s.icon} ${s.label}</div>
+          <button class="ghost small" onclick="openMealModal('${s.key}')">Modifier</button>
+        </div>
+        <div class="muted">${escapeHtml(meal.description || "")}</div>
+        <div class="row wrap" style="gap: 4px; margin-top: 6px;">
+          ${(meal.proteins || []).map(p => `<span class="chip small">${PROTEIN_LABELS[p]}</span>`).join("")}
+          ${meal.carbs ? `<span class="chip small">🍞 Carbs</span>` : ""}
+          ${meal.verdure ? `<span class="chip small">🥬 Verdure</span>` : ""}
+          ${meal.fruits ? `<span class="chip small">🍎 Fruits</span>` : ""}
+        </div>
+        ${warns.map(w => `<div class="${w.level}">${w.msg}</div>`).join("")}
+      </div>
+    `;
+  }).join("");
+}
+
+// --- BILAN ---
+function renderBilan() {
+  const stats = weekStats();
+  document.getElementById("bilan-week").innerHTML = `
+    <div class="stat"><span>Semaine du</span><span>${fmtDateLong(daysOfWeek()[0])}</span></div>
+    <div class="stat"><span>Séances muscu</span><span class="val">${stats.sessions} / 2</span></div>
+    <div class="stat"><span>Repas carbs</span><span class="val">${stats.carbs} / 4</span></div>
+    <div class="stat"><span>Repas conformes</span><span class="val">${stats.conform} / ${stats.mealsCount}</span></div>
+    <div class="stat"><span>Hydratation OK</span><span class="val">${stats.waterOK} / 7 j</span></div>
+    <div class="stat"><span>Eau moyenne / j</span><span class="val">${stats.waterDaysLogged ? (stats.waterTotal / stats.waterDaysLogged).toFixed(2) : "0"} L</span></div>
+    <div class="stat"><span>Oléagineux</span><span class="val">${stats.oleag} / 7 j</span></div>
+    <div class="stat"><span>Kiff chocolat/PB</span><span class="val">${stats.kiff}</span></div>
+    <div class="stat"><span>Jours récup</span><span class="val">${stats.recovery}</span></div>
+  `;
+  document.getElementById("bilan-report").textContent = buildReport();
+}
+
+// ============ MEAL LOGIC ============
+
+function checkMealWarnings(meal, slotKey) {
+  const warns = [];
+  if (slotKey === "rf") {
+    if (meal.proteins?.length || meal.carbs) {
+      warns.push({ level: "warn", msg: "⚠️ Repas fruits : normalement fruits frais seuls (éventuellement + oléagineux)" });
+    }
+    if (!meal.fruits) {
+      warns.push({ level: "warn", msg: "⚠️ Repas fruits sans fruits ?" });
+    }
+    return warns;
+  }
+  const prots = meal.proteins || [];
+  if (prots.includes("viande") && prots.includes("fromage")) {
+    warns.push({ level: "err", msg: "❌ Viande + fromage/laitier : combo à éviter (indigeste)" });
+  }
+  if (prots.length > 1) {
+    warns.push({ level: "warn", msg: "⚠️ Plusieurs types de protéines : à limiter" });
+  }
+  if (meal.carbs && prots.length > 0) {
+    warns.push({ level: "warn", msg: "⚠️ Carbs + protéine : préfère carbs + verdure seule" });
+  }
+  if (prots.length > 0 && !meal.verdure && !meal.fruits) {
+    warns.push({ level: "warn", msg: "⚠️ Ajouter de la verdure/crudité ?" });
+  }
+  return warns;
+}
+
+function isMealConform(meal, slotKey) {
+  return checkMealWarnings(meal, slotKey).filter(w => w.level === "err").length === 0
+    && checkMealWarnings(meal, slotKey).length === 0;
+}
+
+function weekStats() {
+  const days = daysOfWeek();
+  let sessions = 0, carbs = 0, oleag = 0, kiff = 0, recovery = 0, mealsCount = 0, conform = 0;
+  let waterOK = 0, waterTotal = 0, waterDaysLogged = 0;
+  for (const d of days) {
+    if (state.sessions[d]) sessions++;
+    const m = state.meals[d];
+    if (!m) continue;
+    if (m.oleag) oleag++;
+    kiff += m.kiff || 0;
+    if (m.recovery) recovery++;
+    if (m.water > 0) {
+      waterDaysLogged++;
+      waterTotal += m.water;
+      if (m.water >= waterGoal(d)) waterOK++;
+    }
+    for (const slot of ["r1", "r2", "rf"]) {
+      const meal = m[slot];
+      if (!meal) continue;
+      mealsCount++;
+      if (meal.carbs) carbs++;
+      if (isMealConform(meal, slot)) conform++;
+    }
+  }
+  return { sessions, carbs, oleag, kiff, recovery, mealsCount, conform, waterOK, waterTotal, waterDaysLogged };
+}
+
+// ============ SESSION ACTIONS ============
+
+function startSession(type) {
+  if (state.active_session) {
+    if (!confirm("Une séance est déjà en cours. La reprendre ou en lancer une nouvelle ?\n(OK = nouvelle, Annuler = reprendre)")) {
+      switchTab("jour");
+      return;
+    }
+  }
+  state.active_session = {
+    date: todayISO(),
+    type,
+    exercises: PROGRAM[type].exercises.map(e => ({ name: e.name, target: e.target, plannedSets: e.sets, plannedReps: e.reps, sets: [] }))
+  };
+  saveState();
+  switchTab("jour");
+}
+
+function renderActiveSession() {
+  const a = state.active_session;
+  return `
+    <h3 style="margin-top: 0;">${PROGRAM[a.type].name}</h3>
+    ${a.exercises.map((e, i) => `
+      <div class="exo">
+        <div class="exo-name">${escapeHtml(e.name)}</div>
+        <div class="exo-target">${escapeHtml(e.target)} · Objectif : ${e.plannedSets} × ${e.plannedReps}</div>
+        <div class="sets">
+          ${e.sets.map(s => `<span class="set-pill done">${s.weight ? s.weight + 'kg × ' : ''}${s.reps}</span>`).join("")}
+          ${e.sets.length < 20 ? `<button class="chip small" onclick="openSetModal(${i})">+ Série</button>` : ""}
+        </div>
+      </div>
+    `).join("")}
+    <div class="grid2" style="margin-top: 14px;">
+      <button class="secondary" onclick="cancelSession()">Annuler</button>
+      <button onclick="finishSession()">✓ Terminer</button>
+    </div>
+  `;
+}
+
+function openSetModal(exoIdx) {
+  const a = state.active_session;
+  const exo = a.exercises[exoIdx];
+  const lastSet = exo.sets[exo.sets.length - 1];
+  const lastSameExo = findLastPerformance(exo.name);
+  const suggestedWeight = lastSet?.weight ?? lastSameExo?.weight ?? "";
+  const suggestedReps = lastSet?.reps ?? lastSameExo?.reps ?? exo.plannedReps.replace(/[^\d]/g, "").slice(0, 2);
+  openModal(`
+    <h2>${escapeHtml(exo.name)}</h2>
+    <p class="muted">Série ${exo.sets.length + 1} / ${exo.plannedSets}${lastSameExo ? ` · dernière fois : ${lastSameExo.weight || 0}kg × ${lastSameExo.reps}` : ""}</p>
+    <div class="grid2" style="margin-top: 12px;">
+      <div class="field">
+        <label>Poids (kg)</label>
+        <input type="number" id="set-weight" step="0.5" value="${suggestedWeight}" autofocus>
+      </div>
+      <div class="field">
+        <label>Reps</label>
+        <input type="number" id="set-reps" value="${suggestedReps}">
+      </div>
+    </div>
+    <button class="full" onclick="addSet(${exoIdx})">Enregistrer la série</button>
+  `);
+}
+
+function findLastPerformance(exoName) {
+  const dates = Object.keys(state.sessions).sort().reverse();
+  for (const d of dates) {
+    const s = state.sessions[d];
+    for (const e of s.exercises) {
+      if (e.name === exoName && e.sets.length > 0) {
+        const last = e.sets[e.sets.length - 1];
+        return { weight: last.weight, reps: last.reps };
+      }
+    }
+  }
+  return null;
+}
+
+function addSet(exoIdx) {
+  const w = parseFloat(document.getElementById("set-weight").value) || 0;
+  const r = parseInt(document.getElementById("set-reps").value) || 0;
+  if (!r) return alert("Nombre de reps requis");
+  state.active_session.exercises[exoIdx].sets.push({ weight: w, reps: r });
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+function finishSession() {
+  const a = state.active_session;
+  if (!a) return;
+  const total = a.exercises.reduce((n, e) => n + e.sets.length, 0);
+  if (total === 0) {
+    if (!confirm("Aucune série enregistrée. Terminer quand même ?")) return;
+  }
+  state.sessions[a.date] = { type: a.type, exercises: a.exercises };
+  state.active_session = null;
+  saveState();
+  renderAll();
+}
+
+function cancelSession() {
+  if (!confirm("Annuler la séance en cours ? Les séries enregistrées seront perdues.")) return;
+  state.active_session = null;
+  saveState();
+  renderAll();
+}
+
+function renderCompletedSession(s) {
+  return `
+    <h3 style="margin-top: 0;">${PROGRAM[s.type].name}</h3>
+    ${s.exercises.map(e => `
+      <div class="exo">
+        <div class="exo-name">${escapeHtml(e.name)}</div>
+        <div class="sets">
+          ${e.sets.map(x => `<span class="set-pill done">${x.weight ? x.weight + 'kg × ' : ''}${x.reps}</span>`).join("") || '<span class="muted" style="font-size:12px;">Aucune série</span>'}
+        </div>
+      </div>
+    `).join("")}
+  `;
+}
+
+function showSessionDetail(date) {
+  const s = state.sessions[date];
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>${fmtDateLong(date)}</h2>
+    <p class="muted">${PROGRAM[s.type].name}</p>
+    ${s.exercises.map(e => `
+      <div class="exo">
+        <div class="exo-name">${escapeHtml(e.name)}</div>
+        <div class="sets">
+          ${e.sets.map(x => `<span class="set-pill done">${x.weight ? x.weight + 'kg × ' : ''}${x.reps}</span>`).join("") || '<span class="muted" style="font-size:12px;">Aucune série</span>'}
+        </div>
+      </div>
+    `).join("")}
+    <button class="danger small" style="margin-top: 14px;" onclick="deleteSession('${date}')">🗑 Supprimer cette séance</button>
+  `);
+}
+
+function deleteSession(date) {
+  if (!confirm("Supprimer cette séance ?")) return;
+  delete state.sessions[date];
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============ MEAL ACTIONS ============
+
+function openMealModal(slotKey) {
+  const meal = todayMeals()[slotKey] || { proteins: [], carbs: false, verdure: false, fruits: false, description: "" };
+  const isFruitSlot = slotKey === "rf";
+  const slotLabels = { r1: "Repas 1", r2: "Repas 2", rf: "Repas fruits" };
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>${slotLabels[slotKey]}</h2>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="meal-desc" placeholder="Ex : poulet grillé + salade tomates concombre + huile d'olive">${escapeHtml(meal.description || "")}</textarea>
+    </div>
+    <div class="field">
+      <label>Protéines (si applicable)</label>
+      <div id="prot-toggles">
+        ${Object.entries(PROTEIN_LABELS).map(([k,v]) => `
+          <span class="pill-toggle ${meal.proteins?.includes(k) ? 'on' : ''}" data-prot="${k}" onclick="this.classList.toggle('on')">${v}</span>
+        `).join("")}
+      </div>
+    </div>
+    <div class="field">
+      <label>Autres</label>
+      <div>
+        <span class="pill-toggle ${meal.carbs ? 'on' : ''}" id="tog-carbs" onclick="this.classList.toggle('on')">🍞 Carbs (pain, pâtes, riz…)</span>
+        <span class="pill-toggle ${meal.verdure ? 'on' : ''}" id="tog-verdure" onclick="this.classList.toggle('on')">🥬 Verdure / crudités</span>
+        <span class="pill-toggle ${meal.fruits ? 'on' : ''}" id="tog-fruits" onclick="this.classList.toggle('on')">🍎 Fruits frais</span>
+      </div>
+    </div>
+    ${isFruitSlot ? `<p class="hint">💡 Repas fruits : idéalement fruits frais seuls (+ éventuellement oléagineux).</p>` : ""}
+    <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-top: 10px;">
+      <input type="checkbox" id="meal-save-as-recipe" style="width:auto;"> Sauver aussi comme recette (biblio)
+    </label>
+    <div class="grid2" style="margin-top: 14px;">
+      <button class="secondary" onclick="deleteMeal('${slotKey}')">Effacer</button>
+      <button onclick="saveMeal('${slotKey}')">Enregistrer</button>
+    </div>
+  `);
+}
+
+function saveMeal(slotKey) {
+  const desc = document.getElementById("meal-desc").value.trim();
+  const proteins = [...document.querySelectorAll("#prot-toggles .pill-toggle.on")].map(el => el.dataset.prot);
+  const carbs = document.getElementById("tog-carbs").classList.contains("on");
+  const verdure = document.getElementById("tog-verdure").classList.contains("on");
+  const fruits = document.getElementById("tog-fruits").classList.contains("on");
+  const saveAsRecipe = document.getElementById("meal-save-as-recipe")?.checked;
+  todayMeals()[slotKey] = { description: desc, proteins, carbs, verdure, fruits };
+  if (saveAsRecipe && desc) {
+    let type = "prot-verdure";
+    if (slotKey === "rf" || (fruits && !proteins.length && !carbs)) type = "fruits";
+    else if (carbs && !proteins.length) type = "carbs-verdure";
+    const title = desc.split(/[.,;\n]/)[0].slice(0, 60).trim() || desc.slice(0, 40);
+    let id = slugify(title);
+    let n = 2;
+    while (state.recipes.find(r => recipeId(r) === id)) { id = slugify(title) + "-" + n; n++; }
+    state.recipes.push({ id, title, type, proteins, notes: desc, region: "perso" });
+    state.likes[id] = 1; // ajouté par elle = favori par défaut
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+function deleteMeal(slotKey) {
+  todayMeals()[slotKey] = null;
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+function toggleOleag() {
+  const m = todayMeals();
+  m.oleag = !m.oleag;
+  saveState();
+  renderAll();
+}
+
+function addWater(delta) {
+  const m = todayMeals();
+  m.water = Math.max(0, Math.round((m.water + delta) * 100) / 100);
+  saveState();
+  renderAll();
+}
+
+function incrementKiff() {
+  const m = todayMeals();
+  m.kiff = (m.kiff || 0) + 1;
+  if (m.kiff > 5) m.kiff = 0;
+  saveState();
+  renderAll();
+}
+
+function toggleRecovery() {
+  const m = todayMeals();
+  m.recovery = !m.recovery;
+  if (m.recovery && !m.r1) {
+    m.r1 = { description: "Œufs (au plat/brouillés/coque) + grande verdure (épinards, mâche), huile d'olive.", proteins: ["oeuf"], carbs: false, verdure: true, fruits: false };
+  }
+  if (m.recovery && !m.r2) {
+    m.r2 = { description: "Tomates + concombre + herbes + fruits frais + poignée d'amandes ou noix.", proteins: [], carbs: false, verdure: true, fruits: true };
+    m.oleag = true;
+  }
+  saveState();
+  renderAll();
+}
+
+// ============ RECIPES ============
+
+function openRecipeModal() {
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>Nouvelle recette</h2>
+    <div class="field"><label>Titre</label><input id="rec-title"></div>
+    <div class="field"><label>Type</label>
+      <select id="rec-type">
+        <option value="prot-verdure">Prot + verdure</option>
+        <option value="carbs-verdure">Carbs + verdure</option>
+        <option value="fruits">Repas fruits</option>
+        <option value="recovery">Récup</option>
+      </select>
+    </div>
+    <div class="field"><label>Protéines</label>
+      <div id="rec-prot">
+        ${Object.entries(PROTEIN_LABELS).map(([k,v]) => `<span class="pill-toggle" data-prot="${k}" onclick="this.classList.toggle('on')">${v}</span>`).join("")}
+      </div>
+    </div>
+    <div class="field"><label>Notes / ingrédients</label><textarea id="rec-notes"></textarea></div>
+    <button class="full" onclick="saveRecipe()">Ajouter</button>
+  `);
+}
+
+function saveRecipe() {
+  const title = document.getElementById("rec-title").value.trim();
+  if (!title) return alert("Titre requis");
+  const type = document.getElementById("rec-type").value;
+  const proteins = [...document.querySelectorAll("#rec-prot .pill-toggle.on")].map(el => el.dataset.prot);
+  const notes = document.getElementById("rec-notes").value.trim();
+  state.recipes.push({ title, type, proteins, notes });
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+
+// ============ REPORT ============
+
+function buildReport() {
+  const days = daysOfWeek();
+  const stats = weekStats();
+  const weekLabel = `${fmtDateLong(days[0])} → ${fmtDateLong(days[6])}`;
+  let out = `# Bilan Coach - Semaine du ${weekLabel}\n\n`;
+  out += `## Objectif\n`;
+  out += `Renforcement musculaire pour sculpter la silhouette (femme mince, cardio léger), 2 séances/semaine.\n\n`;
+
+  out += `## Muscu (${stats.sessions}/2 séances)\n`;
+  for (const d of days) {
+    const s = state.sessions[d];
+    if (!s) continue;
+    out += `- **${fmtDateLong(d)}** · ${PROGRAM[s.type].name}\n`;
+    for (const e of s.exercises) {
+      if (e.sets.length === 0) continue;
+      const summary = e.sets.map(x => `${x.weight || 0}kg×${x.reps}`).join(", ");
+      out += `  - ${e.name} : ${summary}\n`;
+    }
+  }
+
+  out += `\n## Nutrition\n`;
+  out += `- Repas carbs cette semaine : ${stats.carbs} / 4 max\n`;
+  out += `- Repas conformes aux règles : ${stats.conform} / ${stats.mealsCount}\n`;
+  out += `- Hydratation : ${stats.waterOK} / 7 jours à l'objectif (2 L, ou 2,5 L jours de sport)\n`;
+  out += `- Eau moyenne : ${stats.waterDaysLogged ? (stats.waterTotal / stats.waterDaysLogged).toFixed(2) : "0"} L / j\n`;
+  out += `- Oléagineux : ${stats.oleag} / 7 jours\n`;
+  out += `- Rituel chocolat noir aux éclats de fève + beurre de cacahuète crunchy : ${stats.kiff} fois\n`;
+  out += `- Jours en mode récup : ${stats.recovery}\n\n`;
+
+  out += `### Détail des repas\n`;
+  for (const d of days) {
+    const m = state.meals[d];
+    if (!m) continue;
+    const hasSomething = m.r1 || m.r2 || m.rf || m.oleag || m.kiff;
+    if (!hasSomething) continue;
+    out += `\n**${fmtDateLong(d)}**${m.recovery ? " 🥗 récup" : ""}\n`;
+    for (const [key, label] of [["r1","R1"],["r2","R2"],["rf","Fruits"]]) {
+      const meal = m[key];
+      if (!meal) continue;
+      const tags = [
+        ...(meal.proteins || []).map(p => PROTEIN_LABELS[p]),
+        meal.carbs && "carbs",
+        meal.verdure && "verdure",
+        meal.fruits && "fruits"
+      ].filter(Boolean).join(", ");
+      out += `- ${label} : ${meal.description || "(sans description)"} [${tags}]\n`;
+    }
+    if (m.oleag) out += `- 🌰 oléagineux ✓\n`;
+    if (m.kiff) out += `- 🍫 kiff × ${m.kiff}\n`;
+  }
+
+  out += `\n## Règles de référence\n`;
+  out += `- 2 vrais repas + 1 repas fruits frais (jamais cuits), pas de grignotage\n`;
+  out += `- Éviter mélange de protéines dans un même repas ; viande + fromage/laitier = interdit\n`;
+  out += `- Carbs (pain compris) : max 3-4 repas/sem ; si carbs, alors carbs + verdure seule\n`;
+  out += `- Varier textures, couleurs, épices ; oléagineux quotidiens ; kiff chocolat noir aux éclats de fève de cacao + beurre de cacahuète crunchy en fin de repas\n`;
+  out += `- Mode récup après un excès : déj œufs+verdure, soir tomates+concombre+fruits+oléagineux\n\n`;
+
+  out += `## Ma demande\n`;
+  out += `Peux-tu analyser ma semaine et me donner :\n`;
+  out += `1. Ce qui va bien et ce qui dérive\n`;
+  out += `2. 3 ajustements concrets pour la semaine prochaine\n`;
+  out += `3. Suggestions de progression sur les charges muscu si pertinent\n`;
+  return out;
+}
+
+async function copyReport() {
+  const txt = document.getElementById("bilan-report").textContent;
+  try {
+    await navigator.clipboard.writeText(txt);
+    alert("Bilan copié ! Colle-le dans une conversation Claude.");
+  } catch (e) {
+    prompt("Copie manuellement :", txt);
+  }
+}
+
+// ============ DATA ============
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `coach-${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const s = JSON.parse(await file.text());
+      if (!confirm("Remplacer toutes les données actuelles ?")) return;
+      state = { ...state, ...s };
+      saveState();
+      renderAll();
+      alert("Données importées.");
+    } catch (err) {
+      alert("Fichier invalide.");
+    }
+  };
+  input.click();
+}
+
+function resetData() {
+  if (!confirm("Effacer TOUTES les données (séances, repas, recettes) ? Irréversible.")) return;
+  if (!confirm("Vraiment sûre ?")) return;
+  localStorage.removeItem("coach_state_v1");
+  state = { sessions: {}, meals: {}, recipes: [...SEED_RECIPES], active_session: null };
+  renderAll();
+}
+
+function showSettings() {
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>Paramètres</h2>
+    <p class="muted">App locale — toutes les données restent dans ton navigateur.</p>
+    <h3>Astuce mobile</h3>
+    <p style="font-size: 13px;">Sur iPhone : ouvre ce fichier dans Safari, appuie sur "Partager" → "Sur l'écran d'accueil".<br>
+    Sur Android : Chrome → menu ⋮ → "Ajouter à l'écran d'accueil".</p>
+    <h3>Sauvegarde</h3>
+    <p style="font-size: 13px;">Pense à exporter tes données régulièrement depuis l'onglet Bilan → Exporter.</p>
+  `);
+}
+
+// ============ MODAL ============
+
+function openModal(html) {
+  document.getElementById("modal-body").innerHTML = html;
+  document.getElementById("modal-bg").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modal-bg").classList.remove("open");
+}
+
+// ============ UTIL ============
+
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+// ============ INIT ============
+
+loadState();
+render("jour");
+
+</script>
+</body>
+</html>
