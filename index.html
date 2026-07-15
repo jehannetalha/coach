@@ -309,21 +309,35 @@ pre.report {
 
 <main>
 
-<!-- ============ VIEW: JOUR ============ -->
-<section id="view-jour" class="view active">
+<!-- ============ VIEW: MA JOURNÉE ============ -->
+<section id="view-journee" class="view active">
 
   <div class="card">
     <div class="row spread">
-      <h2>Séance du jour</h2>
-      <div id="jour-session-toggle"></div>
+      <h2>Séance & activités du jour</h2>
+      <div id="journee-session-toggle"></div>
     </div>
-    <div id="jour-session-body"></div>
+    <div id="journee-session-body"></div>
+    <div id="journee-activities" style="margin-top: 10px;"></div>
+    <button class="secondary small full" style="margin-top: 8px;" onclick="openActivityModal()">➕ Ajouter activité (danse, vélo, rando…)</button>
   </div>
 
   <div class="card">
-    <h2>Repas du jour</h2>
-    <div id="jour-meals"></div>
-    <div id="jour-rituals" style="margin-top: 10px;"></div>
+    <div class="row spread">
+      <h2>Corps</h2>
+      <button class="ghost small" onclick="openBodyModal()">Enregistrer</button>
+    </div>
+    <div id="journee-body"></div>
+  </div>
+
+  <div class="card">
+    <div class="row spread">
+      <h2>Repas du jour</h2>
+      <button class="secondary small" onclick="toggleRecovery()">🥗 <span id="recovery-btn-label">Mode récup</span></button>
+    </div>
+    <p class="muted" id="recovery-status"></p>
+    <div id="journee-meals"></div>
+    <div id="journee-rituals" style="margin-top: 10px;"></div>
   </div>
 
   <div class="card">
@@ -334,22 +348,22 @@ pre.report {
       <button class="secondary small" onclick="suggestFor('r2')">Repas 2</button>
       <button class="secondary small" onclick="suggestFor('rf')">Fruits</button>
     </div>
-    <div id="jour-suggest" style="margin-top: 10px;"></div>
+    <div id="journee-suggest" style="margin-top: 10px;"></div>
   </div>
 
   <div class="card">
     <h2>Cette semaine</h2>
-    <div id="jour-week-stats"></div>
+    <div id="journee-week-stats"></div>
   </div>
 
 </section>
 
-<!-- ============ VIEW: MUSCU ============ -->
-<section id="view-muscu" class="view">
+<!-- ============ VIEW: SPORT ============ -->
+<section id="view-sport" class="view">
 
   <div class="card">
-    <h2>Programme (2 séances / semaine)</h2>
-    <p class="muted">Alterne séance A et B. Objectif : renforcement pour sculpter la silhouette.</p>
+    <h2>Programme muscu (2 séances / semaine)</h2>
+    <p class="muted">Alterne séance A et B. Objectif : renforcement pour sculpter la silhouette. ~30 min chacune.</p>
     <div class="grid2" style="margin-top: 10px;">
       <button onclick="startSession('A')">▶ Séance A<br><span style="font-size:11px;opacity:.8;">Bas + push</span></button>
       <button onclick="startSession('B')">▶ Séance B<br><span style="font-size:11px;opacity:.8;">Haut + core</span></button>
@@ -357,28 +371,28 @@ pre.report {
   </div>
 
   <div class="card">
-    <h2>Historique</h2>
-    <div id="muscu-history"></div>
+    <div class="row spread">
+      <h2>Activités libres</h2>
+      <button class="ghost small" onclick="openActivityModal()">➕ Ajouter</button>
+    </div>
+    <p class="muted">Danse, vélo, rando, marche, natation, yoga…</p>
+    <div id="sport-activities" style="margin-top: 8px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Historique séances muscu</h2>
+    <div id="sport-history"></div>
   </div>
 
   <div class="card">
     <h2>Bibliothèque d'exos</h2>
-    <div id="muscu-library"></div>
+    <div id="sport-library"></div>
   </div>
 
 </section>
 
 <!-- ============ VIEW: NUTRITION ============ -->
 <section id="view-nutrition" class="view">
-
-  <div class="card">
-    <div class="row spread">
-      <h2>Journal du jour</h2>
-      <button class="secondary small" onclick="toggleRecovery()">🥗 <span id="recovery-btn-label">Mode récup</span></button>
-    </div>
-    <p class="muted" id="recovery-status"></p>
-    <div id="nutrition-meals"></div>
-  </div>
 
   <div class="card">
     <h2>Règles</h2>
@@ -396,17 +410,6 @@ pre.report {
       <li>🌰 Oléagineux tous les jours</li>
       <li>🍫 Kiff : 2 carrés chocolat noir aux éclats de fève de cacao + beurre de cacahuète crunchy, en fin de repas</li>
     </ul>
-  </div>
-
-  <div class="card">
-    <h2>Historique jour par jour</h2>
-    <div class="row wrap" style="gap:6px; margin-bottom: 10px;">
-      <span class="chip small hist-chip active" data-hist="7">7 derniers jours</span>
-      <span class="chip small hist-chip" data-hist="14">14 derniers</span>
-      <span class="chip small hist-chip" data-hist="30">30 derniers</span>
-      <span class="chip small hist-chip" data-hist="all">Tout</span>
-    </div>
-    <div id="nutrition-history"></div>
   </div>
 
   <div class="card">
@@ -484,30 +487,47 @@ pre.report {
 
 </section>
 
-<!-- ============ VIEW: BILAN ============ -->
-<section id="view-bilan" class="view">
+<!-- ============ VIEW: HISTORIQUE ============ -->
+<section id="view-historique" class="view">
 
   <div class="card">
-    <h2>Semaine en cours</h2>
-    <div id="bilan-week"></div>
+    <h2>Évolution corps</h2>
+    <div class="row wrap" style="gap:6px; margin-bottom: 10px;">
+      <span class="chip small range-chip active" data-range="30">30 j</span>
+      <span class="chip small range-chip" data-range="90">3 mois</span>
+      <span class="chip small range-chip" data-range="365">1 an</span>
+      <span class="chip small range-chip" data-range="all">Tout</span>
+    </div>
+    <div id="chart-weight"></div>
+    <div id="chart-hydration" style="margin-top: 12px;"></div>
+    <div id="chart-water" style="margin-top: 12px;"></div>
   </div>
 
   <div class="card">
-    <h2>Bilan pour Claude</h2>
-    <p class="muted">Copie ce texte et colle-le dans une conversation Claude pour avoir des recommandations perso.</p>
-    <pre class="report" id="bilan-report"></pre>
-    <div class="row" style="margin-top: 10px;">
-      <button class="full" onclick="copyReport()">📋 Copier le bilan</button>
+    <h2>Calendrier</h2>
+    <div class="row spread" style="margin-bottom: 8px;">
+      <button class="ghost small" onclick="calNav(-1)">◀</button>
+      <strong id="cal-title"></strong>
+      <button class="ghost small" onclick="calNav(1)">▶</button>
     </div>
+    <div id="cal-grid"></div>
+    <div class="hint" style="margin-top: 8px;">🏋️ séance · 🏅 activité · 🥗 récup · 💧 hydratation OK · ⚖️ pesée</div>
   </div>
 
   <div class="card">
-    <h2>Données</h2>
-    <div class="grid2">
-      <button class="secondary small" onclick="exportData()">⬇ Exporter</button>
-      <button class="secondary small" onclick="importData()">⬆ Importer</button>
+    <h2>Séances & activités</h2>
+    <div id="historique-sport"></div>
+  </div>
+
+  <div class="card">
+    <h2>Repas jour par jour</h2>
+    <div class="row wrap" style="gap:6px; margin-bottom: 10px;">
+      <span class="chip small hist-chip active" data-hist="7">7 j</span>
+      <span class="chip small hist-chip" data-hist="14">14 j</span>
+      <span class="chip small hist-chip" data-hist="30">30 j</span>
+      <span class="chip small hist-chip" data-hist="all">Tout</span>
     </div>
-    <button class="danger small full" style="margin-top: 8px;" onclick="resetData()">🗑 Tout effacer</button>
+    <div id="nutrition-history"></div>
   </div>
 
 </section>
@@ -516,10 +536,10 @@ pre.report {
 
 <!-- ============ TAB BAR ============ -->
 <nav class="tabs">
-  <button class="active" data-tab="jour"><span class="ico">📅</span>Jour</button>
-  <button data-tab="muscu"><span class="ico">🏋️</span>Muscu</button>
+  <button class="active" data-tab="journee"><span class="ico">📅</span>Ma journée</button>
+  <button data-tab="sport"><span class="ico">🏋️</span>Sport</button>
   <button data-tab="nutrition"><span class="ico">🥑</span>Nutrition</button>
-  <button data-tab="bilan"><span class="ico">📊</span>Bilan</button>
+  <button data-tab="historique"><span class="ico">📊</span>Historique</button>
 </nav>
 
 <!-- ============ MODAL ============ -->
@@ -734,13 +754,32 @@ const MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 // ============ STATE ============
 
 let state = {
-  sessions: {},      // { "YYYY-MM-DD": { type: "A"|"B", exercises: [{name, sets: [{reps, weight}]}] } }
-  meals: {},         // { "YYYY-MM-DD": { r1: MealObj, r2: MealObj, rf: MealObj, oleag, kiff, recovery, water } }
+  sessions: {},      // { "YYYY-MM-DD": { type: "A"|"B", exercises: [...] } }
+  activities: {},    // { "YYYY-MM-DD": [{ type, duration, intensity, notes }] }
+  body: {},          // { "YYYY-MM-DD": { weight: number, hydration: number } }
+  meals: {},         // { "YYYY-MM-DD": { r1, r2, rf, oleag, kiff, recovery, water } }
   recipes: [],       // fusionné à loadState avec SEED_RECIPES
   likes: {},         // { recipeId: 1 (favori) | -1 (refusée) }
   active_session: null,
-  suggestion: null   // { slot, recipeId } — dernière suggestion pour affichage
+  suggestion: null
 };
+
+const ACTIVITY_TYPES = [
+  { key: "danse", label: "💃 Danse" },
+  { key: "velo", label: "🚴 Vélo" },
+  { key: "rando", label: "🥾 Rando" },
+  { key: "marche", label: "🚶 Marche" },
+  { key: "natation", label: "🏊 Natation" },
+  { key: "yoga", label: "🧘 Yoga / Pilates" },
+  { key: "course", label: "🏃 Course à pied" },
+  { key: "raquette", label: "🎾 Sport raquette" },
+  { key: "autre", label: "🏅 Autre" }
+];
+const ACTIVITY_INTENSITIES = [
+  { key: "light", label: "Légère" },
+  { key: "moderate", label: "Modérée" },
+  { key: "intense", label: "Intense" }
+];
 
 function loadState() {
   try {
@@ -811,7 +850,24 @@ function todayMeals() {
 }
 
 function waterGoal(dateISO) {
-  return state.sessions[dateISO] ? 2.5 : 2.0;
+  const hasSession = !!state.sessions[dateISO];
+  const hasActivity = (state.activities[dateISO] || []).length > 0;
+  return (hasSession || hasActivity) ? 2.5 : 2.0;
+}
+
+function bodyToday() {
+  const t = todayISO();
+  if (!state.body[t]) state.body[t] = { weight: null, hydration: null };
+  return state.body[t];
+}
+
+function lastBody() {
+  const dates = Object.keys(state.body).sort();
+  for (let i = dates.length - 1; i >= 0; i--) {
+    const b = state.body[dates[i]];
+    if (b && (b.weight != null || b.hydration != null)) return { date: dates[i], ...b };
+  }
+  return null;
 }
 
 // ============ NAV ============
@@ -834,28 +890,28 @@ function switchTab(name) {
 
 function render(tab) {
   tab = tab || currentTab();
-  if (tab === "jour") renderJour();
-  if (tab === "muscu") renderMuscu();
+  if (tab === "journee") renderJournee();
+  if (tab === "sport") renderSport();
   if (tab === "nutrition") renderNutrition();
-  if (tab === "bilan") renderBilan();
+  if (tab === "historique") renderHistorique();
 }
 function currentTab() {
   const b = document.querySelector("nav.tabs button.active");
-  return b ? b.dataset.tab : "jour";
+  return b ? b.dataset.tab : "journee";
 }
 
 function renderAll() { render(currentTab()); }
 
 // --- JOUR ---
-function renderJour() {
+function renderJournee() {
   const today = todayISO();
   document.getElementById("today-date").textContent = fmtDateLong(today);
 
   // Session
   const s = state.sessions[today];
   const active = state.active_session;
-  const box = document.getElementById("jour-session-body");
-  const toggle = document.getElementById("jour-session-toggle");
+  const box = document.getElementById("journee-session-body");
+  const toggle = document.getElementById("journee-session-toggle");
   if (active && active.date === today) {
     toggle.innerHTML = `<span class="chip" style="background:var(--warn);color:#78350f;">En cours</span>`;
     box.innerHTML = renderActiveSession();
@@ -875,14 +931,14 @@ function renderJour() {
   }
 
   // Meals
-  renderMealsInto("jour-meals");
+  renderMealsInto("journee-meals");
 
   // Rituals
   const m = todayMeals();
   const goal = waterGoal(today);
   const waterPct = Math.min(100, m.water / goal * 100);
   const waterClass = m.water >= goal ? "ok" : m.water >= goal * 0.5 ? "" : "warn";
-  document.getElementById("jour-rituals").innerHTML = `
+  document.getElementById("journee-rituals").innerHTML = `
     <div style="margin-top: 6px;">
       <div class="row spread" style="margin-bottom: 4px;">
         <span style="font-size: 13px;">💧 Eau <strong>${m.water.toFixed(2)} L</strong> / ${goal.toFixed(1)} L${state.sessions[today] ? ' (jour sport)' : ''}</span>
@@ -899,12 +955,61 @@ function renderJour() {
     </div>
   `;
 
+  // Activities
+  const acts = state.activities[today] || [];
+  const actsEl = document.getElementById("journee-activities");
+  if (actsEl) {
+    if (acts.length === 0) {
+      actsEl.innerHTML = "";
+    } else {
+      actsEl.innerHTML = `<h3>Activités du jour</h3>` + acts.map((a, i) => `
+        <div class="row spread" style="padding: 6px 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <strong>${escapeHtml(activityLabel(a.type))}</strong>
+            <span class="muted" style="font-size:12px;"> · ${a.duration} min · ${intensityLabel(a.intensity)}</span>
+            ${a.notes ? `<div style="font-size:12px; color:var(--muted);">${escapeHtml(a.notes)}</div>` : ""}
+          </div>
+          <div>
+            <button class="ghost small" onclick="openActivityModal(${i})">✎</button>
+            <button class="ghost small" onclick="deleteActivity(${i})">🗑</button>
+          </div>
+        </div>
+      `).join("");
+    }
+  }
+
+  // Body
+  const b = bodyToday();
+  const last = lastBody();
+  const bodyEl = document.getElementById("journee-body");
+  if (bodyEl) {
+    const parts = [];
+    if (b.weight != null) parts.push(`⚖️ <strong>${b.weight} kg</strong>`);
+    if (b.hydration != null) parts.push(`💧 <strong>${b.hydration} %</strong>`);
+    if (parts.length > 0) {
+      bodyEl.innerHTML = `<div style="font-size: 15px;">${parts.join(" &nbsp;·&nbsp; ")}</div>`;
+    } else if (last) {
+      bodyEl.innerHTML = `<p class="muted">Pas de mesure aujourd'hui. Dernière : <strong>${last.weight != null ? last.weight + " kg" : ""}${last.weight != null && last.hydration != null ? " · " : ""}${last.hydration != null ? last.hydration + " %" : ""}</strong> le ${fmtDateLong(last.date)}</p>`;
+    } else {
+      bodyEl.innerHTML = `<p class="muted">Aucune mesure enregistrée.</p>`;
+    }
+  }
+
+  // Recovery button state
+  const rec = todayMeals();
+  const recLabel = document.getElementById("recovery-btn-label");
+  const recStatus = document.getElementById("recovery-status");
+  if (recLabel) recLabel.textContent = rec.recovery ? "Sortir du mode récup" : "Mode récup";
+  if (recStatus) recStatus.textContent = rec.recovery
+    ? "🥗 Mode récup activé : déj œufs+verdure, soir tomates+concombre+fruits+oléagineux."
+    : "";
+
   // Suggestion (restaure l'affichage entre navigations)
   renderSuggestion();
 
   // Week stats
   const stats = weekStats();
-  document.getElementById("jour-week-stats").innerHTML = `
+  document.getElementById("journee-week-stats").innerHTML = `
     <div class="stat"><span>Séances</span><span class="val">${stats.sessions} / 2</span></div>
     <div class="stat"><span>Repas carbs</span><span class="val">${stats.carbs} / 4</span>
       <div class="progress ${stats.carbs > 4 ? 'err' : stats.carbs > 3 ? 'warn' : ''}" style="grid-column: 1/-1;">
@@ -942,7 +1047,7 @@ function suggestFor(slotKey) {
     return true;
   });
   if (candidates.length === 0) {
-    document.getElementById("jour-suggest").innerHTML = `<p class="warn">Aucune recette compatible trouvée. Débloque un dislike, ou ajoute une nouvelle recette.</p>`;
+    document.getElementById("journee-suggest").innerHTML = `<p class="warn">Aucune recette compatible trouvée. Débloque un dislike, ou ajoute une nouvelle recette.</p>`;
     return;
   }
   const liked = candidates.filter(r => state.likes[recipeId(r)] === 1);
@@ -954,7 +1059,7 @@ function suggestFor(slotKey) {
 }
 
 function renderSuggestion() {
-  const el = document.getElementById("jour-suggest");
+  const el = document.getElementById("journee-suggest");
   if (!el) return;
   if (!state.suggestion) { el.innerHTML = ""; return; }
   const r = state.recipes.find(x => recipeId(x) === state.suggestion.recipeId);
@@ -999,10 +1104,34 @@ function applySuggestion() {
 }
 
 // --- MUSCU ---
-function renderMuscu() {
-  // History
+function renderSport() {
+  // Activités récentes
+  const actEl = document.getElementById("sport-activities");
+  if (actEl) {
+    const all = [];
+    for (const [d, list] of Object.entries(state.activities)) {
+      for (const a of list) all.push({ date: d, ...a });
+    }
+    all.sort((a, b) => b.date.localeCompare(a.date));
+    const recent = all.slice(0, 20);
+    if (recent.length === 0) {
+      actEl.innerHTML = `<p class="muted">Aucune activité enregistrée.</p>`;
+    } else {
+      actEl.innerHTML = recent.map(a => `
+        <div class="session-summary">
+          <div>
+            <div class="date">${fmtDateLong(a.date)}</div>
+            <div class="type">${activityLabel(a.type)} · ${a.duration} min · ${intensityLabel(a.intensity)}</div>
+            ${a.notes ? `<div class="muted" style="font-size:11px;">${escapeHtml(a.notes)}</div>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+  }
+
+  // History muscu
   const dates = Object.keys(state.sessions).sort().reverse();
-  const hist = document.getElementById("muscu-history");
+  const hist = document.getElementById("sport-history");
   if (dates.length === 0) {
     hist.innerHTML = `<p class="muted">Aucune séance encore. Lance-toi !</p>`;
   } else {
@@ -1022,7 +1151,7 @@ function renderMuscu() {
   }
 
   // Library
-  document.getElementById("muscu-library").innerHTML = EXO_LIBRARY.map(e => `
+  document.getElementById("sport-library").innerHTML = EXO_LIBRARY.map(e => `
     <div class="exo">
       <div class="exo-name">${e.name}</div>
       <div class="exo-target">${e.target}</div>
@@ -1033,13 +1162,6 @@ function renderMuscu() {
 
 // --- NUTRITION ---
 function renderNutrition() {
-  renderMealsInto("nutrition-meals");
-  renderNutritionHistory();
-  const m = todayMeals();
-  document.getElementById("recovery-btn-label").textContent = m.recovery ? "Sortir du mode récup" : "Mode récup";
-  document.getElementById("recovery-status").textContent = m.recovery
-    ? "🥗 Mode récup activé : déj œufs+verdure, soir tomates+concombre+fruits+oléagineux."
-    : "";
 
   // Recipes
   const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
@@ -1229,21 +1351,201 @@ function renderMealsInto(elemId) {
   }).join("");
 }
 
-// --- BILAN ---
-function renderBilan() {
-  const stats = weekStats();
-  document.getElementById("bilan-week").innerHTML = `
-    <div class="stat"><span>Semaine du</span><span>${fmtDateLong(daysOfWeek()[0])}</span></div>
-    <div class="stat"><span>Séances muscu</span><span class="val">${stats.sessions} / 2</span></div>
-    <div class="stat"><span>Repas carbs</span><span class="val">${stats.carbs} / 4</span></div>
-    <div class="stat"><span>Repas conformes</span><span class="val">${stats.conform} / ${stats.mealsCount}</span></div>
-    <div class="stat"><span>Hydratation OK</span><span class="val">${stats.waterOK} / 7 j</span></div>
-    <div class="stat"><span>Eau moyenne / j</span><span class="val">${stats.waterDaysLogged ? (stats.waterTotal / stats.waterDaysLogged).toFixed(2) : "0"} L</span></div>
-    <div class="stat"><span>Oléagineux</span><span class="val">${stats.oleag} / 7 j</span></div>
-    <div class="stat"><span>Kiff chocolat/PB</span><span class="val">${stats.kiff}</span></div>
-    <div class="stat"><span>Jours récup</span><span class="val">${stats.recovery}</span></div>
+// --- HISTORIQUE ---
+let calCursor = null; // {year, month}
+
+function renderHistorique() {
+  renderCharts();
+  renderCalendar();
+  renderSportHistory();
+  renderNutritionHistory();
+}
+
+function currentRange() {
+  const r = document.querySelector(".range-chip.active")?.dataset.range || "30";
+  return r === "all" ? Infinity : parseInt(r);
+}
+
+function collectSeries(kind, days) {
+  const now = new Date();
+  const cutoff = new Date(now); cutoff.setDate(now.getDate() - days);
+  const points = [];
+  for (const [d, v] of Object.entries(state.body)) {
+    if (fromISO(d) < cutoff && days !== Infinity) continue;
+    const val = v?.[kind];
+    if (val != null) points.push({ date: d, x: fromISO(d).getTime(), y: val });
+  }
+  return points.sort((a,b) => a.x - b.x);
+}
+
+function collectWaterSeries(days) {
+  const now = new Date();
+  const cutoff = new Date(now); cutoff.setDate(now.getDate() - days);
+  const points = [];
+  for (const [d, m] of Object.entries(state.meals)) {
+    if (!m || m.water == null) continue;
+    if (fromISO(d) < cutoff && days !== Infinity) continue;
+    points.push({ date: d, x: fromISO(d).getTime(), y: m.water, goal: waterGoal(d) });
+  }
+  return points.sort((a,b) => a.x - b.x);
+}
+
+function renderChart(elId, title, unit, points, color = "#a78bfa", extraLine = null) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (points.length === 0) {
+    el.innerHTML = `<h3 style="margin-top:0;">${title}</h3><p class="muted" style="font-size:13px;">Aucune donnée sur cette période.</p>`;
+    return;
+  }
+  const w = 320, h = 120, pad = 28;
+  const xs = points.map(p => p.x);
+  const ys = points.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  let minY = Math.min(...ys), maxY = Math.max(...ys);
+  if (extraLine != null) { minY = Math.min(minY, extraLine); maxY = Math.max(maxY, extraLine); }
+  if (minY === maxY) { minY -= 1; maxY += 1; }
+  const pad0 = (maxY - minY) * 0.1;
+  minY -= pad0; maxY += pad0;
+  const sx = x => pad + (maxX === minX ? (w - 2*pad)/2 : ((x - minX) / (maxX - minX)) * (w - 2*pad));
+  const sy = y => h - pad - ((y - minY) / (maxY - minY)) * (h - 2*pad);
+  const linePath = points.map((p,i) => `${i === 0 ? "M" : "L"}${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(" ");
+  const dotsHtml = points.map(p => `<circle cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="3" fill="${color}"/>`).join("");
+  const goalLine = extraLine != null
+    ? `<line x1="${pad}" y1="${sy(extraLine).toFixed(1)}" x2="${w-pad}" y2="${sy(extraLine).toFixed(1)}" stroke="var(--muted)" stroke-dasharray="3,3" stroke-width="1"/>`
+    : "";
+  const last = points[points.length - 1];
+  const first = points[0];
+  const delta = last.y - first.y;
+  const deltaLabel = delta === 0 ? "→ 0" : (delta > 0 ? "▲ +" + delta.toFixed(1) : "▼ " + delta.toFixed(1));
+  const deltaColor = kind => (kind === "weight" ? (delta > 0 ? "var(--warn)" : "var(--ok)") : "var(--muted)");
+  el.innerHTML = `
+    <div class="row spread" style="margin-bottom: 4px;">
+      <h3 style="margin: 0;">${title}</h3>
+      <span style="font-size: 12px;"><strong>${last.y}${unit}</strong> <span style="color: var(--muted); font-size: 11px;">${deltaLabel} ${unit}</span></span>
+    </div>
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">
+      <rect x="${pad}" y="${pad-8}" width="${w-2*pad}" height="${h-2*pad+8}" fill="var(--card2)" rx="6"/>
+      ${goalLine}
+      <path d="${linePath}" stroke="${color}" stroke-width="2" fill="none"/>
+      ${dotsHtml}
+      <text x="${pad}" y="${h-8}" fill="var(--muted)" font-size="10">${fmtShort(first.date)}</text>
+      <text x="${w-pad}" y="${h-8}" fill="var(--muted)" font-size="10" text-anchor="end">${fmtShort(last.date)}</text>
+    </svg>
   `;
-  document.getElementById("bilan-report").textContent = buildReport();
+}
+
+function fmtShort(iso) {
+  const d = fromISO(iso);
+  return `${d.getDate()}/${d.getMonth()+1}`;
+}
+
+function renderCharts() {
+  const days = currentRange();
+  renderChart("chart-weight", "⚖️ Poids", " kg", collectSeries("weight", days), "#a78bfa");
+  renderChart("chart-hydration", "💦 Masse hydrique", " %", collectSeries("hydration", days), "#60a5fa");
+  const wpoints = collectWaterSeries(days === Infinity ? 90 : days);
+  renderChart("chart-water", "💧 Eau bue / j", " L", wpoints, "#34d399", 2.0);
+}
+
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("range-chip")) {
+    document.querySelectorAll(".range-chip").forEach(c => c.classList.remove("active"));
+    e.target.classList.add("active");
+    renderCharts();
+  }
+});
+
+function calNav(delta) {
+  if (!calCursor) {
+    const n = new Date();
+    calCursor = { year: n.getFullYear(), month: n.getMonth() };
+  }
+  calCursor.month += delta;
+  if (calCursor.month < 0) { calCursor.month = 11; calCursor.year--; }
+  if (calCursor.month > 11) { calCursor.month = 0; calCursor.year++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  if (!calCursor) {
+    const n = new Date();
+    calCursor = { year: n.getFullYear(), month: n.getMonth() };
+  }
+  const { year, month } = calCursor;
+  document.getElementById("cal-title").textContent = `${MONTHS_FR[month]} ${year}`;
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startWeekday = (first.getDay() + 6) % 7; // Monday = 0
+  const cells = [];
+  for (let i = 0; i < startWeekday; i++) cells.push(`<div></div>`);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const badges = [];
+    if (state.sessions[iso]) badges.push("🏋️");
+    if ((state.activities[iso] || []).length > 0) badges.push("🏅");
+    const m = state.meals[iso];
+    if (m?.recovery) badges.push("🥗");
+    if (m?.water >= waterGoal(iso) && m.water > 0) badges.push("💧");
+    if (state.body[iso]?.weight != null) badges.push("⚖️");
+    const isToday = iso === todayISO();
+    cells.push(`
+      <div style="padding: 4px 2px; text-align: center; border-radius: 6px; background: ${isToday ? 'var(--accent)' : 'var(--card2)'}; color: ${isToday ? '#1e1b4b' : 'var(--text)'}; min-height: 46px;">
+        <div style="font-size: 12px; font-weight: 600;">${d}</div>
+        <div style="font-size: 11px; line-height: 1.1;">${badges.join("")}</div>
+      </div>
+    `);
+  }
+  const dayHeaders = ["L","M","M","J","V","S","D"].map(d => `<div style="text-align:center; font-size: 11px; color: var(--muted); padding: 4px 0;">${d}</div>`).join("");
+  document.getElementById("cal-grid").innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;">
+      ${dayHeaders}
+      ${cells.join("")}
+    </div>
+  `;
+}
+
+function renderSportHistory() {
+  const el = document.getElementById("historique-sport");
+  if (!el) return;
+  const items = [];
+  for (const [d, s] of Object.entries(state.sessions)) {
+    items.push({ date: d, type: "session", data: s });
+  }
+  for (const [d, acts] of Object.entries(state.activities)) {
+    for (const a of acts) items.push({ date: d, type: "activity", data: a });
+  }
+  items.sort((a, b) => b.date.localeCompare(a.date));
+  const recent = items.slice(0, 30);
+  if (recent.length === 0) {
+    el.innerHTML = `<p class="muted">Aucune séance ni activité enregistrée.</p>`;
+    return;
+  }
+  el.innerHTML = recent.map(it => {
+    if (it.type === "session") {
+      const s = it.data;
+      const totalSets = s.exercises.reduce((n, e) => n + e.sets.length, 0);
+      return `
+        <div class="session-summary" onclick="showSessionDetail('${it.date}')">
+          <div>
+            <div class="date">${fmtDateLong(it.date)}</div>
+            <div class="type">🏋️ ${PROGRAM[s.type].name}</div>
+          </div>
+          <div class="muted">${totalSets} séries</div>
+        </div>
+      `;
+    } else {
+      const a = it.data;
+      return `
+        <div class="session-summary">
+          <div>
+            <div class="date">${fmtDateLong(it.date)}</div>
+            <div class="type">${activityLabel(a.type)} · ${a.duration} min · ${intensityLabel(a.intensity)}</div>
+            ${a.notes ? `<div class="muted" style="font-size:11px;">${escapeHtml(a.notes)}</div>` : ""}
+          </div>
+        </div>
+      `;
+    }
+  }).join("");
 }
 
 // ============ MEAL LOGIC ============
@@ -1312,7 +1614,7 @@ function weekStats() {
 function startSession(type) {
   if (state.active_session) {
     if (!confirm("Une séance est déjà en cours. La reprendre ou en lancer une nouvelle ?\n(OK = nouvelle, Annuler = reprendre)")) {
-      switchTab("jour");
+      switchTab("journee");
       return;
     }
   }
@@ -1322,7 +1624,7 @@ function startSession(type) {
     exercises: PROGRAM[type].exercises.map(e => ({ name: e.name, target: e.target, plannedSets: e.sets, plannedReps: e.reps, sets: [] }))
   };
   saveState();
-  switchTab("jour");
+  switchTab("journee");
 }
 
 function renderActiveSession() {
@@ -1390,8 +1692,87 @@ function addSet(exoIdx) {
   if (!r) return alert("Nombre de reps requis");
   state.active_session.exercises[exoIdx].sets.push({ weight: w, reps: r });
   saveState();
-  closeModal();
   renderAll();
+  showRestTimer(exoIdx);
+}
+
+let restTimerInterval = null;
+
+function showRestTimer(exoIdx) {
+  const seconds = PROGRAM[state.active_session.type].exercises[exoIdx].rest;
+  openModal(`
+    <h2>Repos</h2>
+    <p class="muted">Série enregistrée ✓</p>
+    <div style="font-size: 48px; text-align: center; font-weight: 700; margin: 24px 0; font-variant-numeric: tabular-nums;" id="timer-display">${seconds}s</div>
+    <div class="progress" style="height:6px; margin-bottom: 16px;"><div id="timer-bar" style="width: 100%; transition: width 1s linear; background: var(--accent);"></div></div>
+    <div class="grid2">
+      <button class="secondary" onclick="cancelTimer()">Terminer</button>
+      <button onclick="skipTimer(${exoIdx})">Série suivante</button>
+    </div>
+  `);
+  startRestCountdown(seconds);
+}
+
+function startRestCountdown(seconds) {
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  const start = Date.now();
+  const total = seconds;
+  restTimerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    const remaining = total - elapsed;
+    const display = document.getElementById("timer-display");
+    const bar = document.getElementById("timer-bar");
+    if (!display) { clearInterval(restTimerInterval); return; }
+    if (remaining <= 0) {
+      display.textContent = "GO 💪";
+      display.style.color = "var(--ok)";
+      if (bar) bar.style.width = "0%";
+      clearInterval(restTimerInterval);
+      beepSound();
+      try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch(e) {}
+    } else {
+      display.textContent = remaining + "s";
+      if (bar) bar.style.width = ((remaining / total) * 100) + "%";
+    }
+  }, 250);
+}
+
+function cancelTimer() {
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  closeModal();
+}
+
+function skipTimer(exoIdx) {
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  openSetModal(exoIdx);
+}
+
+function beepSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = 880;
+    osc.type = "sine";
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.frequency.value = 1100;
+      osc2.type = "sine";
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      gain2.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc2.start();
+      osc2.stop(ctx.currentTime + 0.6);
+    }, 250);
+  } catch (e) {}
 }
 
 function finishSession() {
@@ -1404,6 +1785,118 @@ function finishSession() {
   state.sessions[a.date] = { type: a.type, exercises: a.exercises };
   state.active_session = null;
   saveState();
+  renderAll();
+}
+
+function activityLabel(key) {
+  const t = ACTIVITY_TYPES.find(a => a.key === key);
+  return t ? t.label : key;
+}
+function intensityLabel(key) {
+  const i = ACTIVITY_INTENSITIES.find(x => x.key === key);
+  return i ? i.label : key;
+}
+
+function openActivityModal(editIdx) {
+  const today = todayISO();
+  const acts = state.activities[today] || [];
+  const existing = editIdx != null ? acts[editIdx] : null;
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>${existing ? "Modifier activité" : "Ajouter activité"}</h2>
+    <div class="field">
+      <label>Type d'activité</label>
+      <select id="act-type">
+        ${ACTIVITY_TYPES.map(t => `<option value="${t.key}" ${existing?.type === t.key ? "selected" : ""}>${t.label}</option>`).join("")}
+      </select>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Durée (min)</label>
+        <input type="number" id="act-duration" step="5" value="${existing?.duration ?? 60}">
+      </div>
+      <div class="field">
+        <label>Intensité</label>
+        <select id="act-intensity">
+          ${ACTIVITY_INTENSITIES.map(i => `<option value="${i.key}" ${existing?.intensity === i.key ? "selected" : ""}>${i.label}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optionnel)</label>
+      <textarea id="act-notes" placeholder="Ex : balade avec Émilie au parc Monceau">${escapeHtml(existing?.notes || "")}</textarea>
+    </div>
+    <div class="grid2" style="margin-top: 14px;">
+      <button class="secondary" onclick="closeModal()">Annuler</button>
+      <button onclick="saveActivity(${editIdx ?? -1})">${existing ? "Modifier" : "Ajouter"}</button>
+    </div>
+  `);
+}
+
+function saveActivity(editIdx) {
+  const type = document.getElementById("act-type").value;
+  const duration = parseInt(document.getElementById("act-duration").value) || 0;
+  const intensity = document.getElementById("act-intensity").value;
+  const notes = document.getElementById("act-notes").value.trim();
+  if (duration <= 0) return alert("Durée doit être > 0");
+  const today = todayISO();
+  if (!state.activities[today]) state.activities[today] = [];
+  const item = { type, duration, intensity, notes };
+  if (editIdx >= 0) state.activities[today][editIdx] = item;
+  else state.activities[today].push(item);
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+function deleteActivity(idx) {
+  if (!confirm("Supprimer cette activité ?")) return;
+  const today = todayISO();
+  state.activities[today].splice(idx, 1);
+  if (state.activities[today].length === 0) delete state.activities[today];
+  saveState();
+  renderAll();
+}
+
+function openBodyModal() {
+  const b = bodyToday();
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>Corps du jour</h2>
+    <div class="grid2">
+      <div class="field">
+        <label>Poids (kg)</label>
+        <input type="number" id="body-weight" step="0.1" value="${b.weight ?? ""}" placeholder="ex: 55.2">
+      </div>
+      <div class="field">
+        <label>Masse hydrique (%)</label>
+        <input type="number" id="body-hydration" step="0.1" value="${b.hydration ?? ""}" placeholder="ex: 52.5">
+      </div>
+    </div>
+    <p class="hint">Laisse vide ce que tu ne mesures pas ce jour.</p>
+    <div class="grid2" style="margin-top: 14px;">
+      <button class="secondary" onclick="deleteBody()">Effacer</button>
+      <button onclick="saveBody()">Enregistrer</button>
+    </div>
+  `);
+}
+
+function saveBody() {
+  const w = document.getElementById("body-weight").value;
+  const h = document.getElementById("body-hydration").value;
+  const b = bodyToday();
+  b.weight = w === "" ? null : parseFloat(w);
+  b.hydration = h === "" ? null : parseFloat(h);
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+function deleteBody() {
+  const t = todayISO();
+  delete state.body[t];
+  saveState();
+  closeModal();
   renderAll();
 }
 
@@ -1668,7 +2161,7 @@ function buildReport() {
 }
 
 async function copyReport() {
-  const txt = document.getElementById("bilan-report").textContent;
+  const txt = document.getElementById("settings-report")?.textContent || buildReport();
   try {
     await navigator.clipboard.writeText(txt);
     alert("Bilan copié ! Colle-le dans une conversation Claude.");
@@ -1719,16 +2212,35 @@ function resetData() {
 }
 
 function showSettings() {
+  const report = buildReport();
   openModal(`
     <button class="close-x" onclick="closeModal()">✕</button>
-    <h2>Paramètres</h2>
-    <p class="muted">App locale — toutes les données restent dans ton navigateur.</p>
-    <h3>Astuce mobile</h3>
-    <p style="font-size: 13px;">Sur iPhone : ouvre ce fichier dans Safari, appuie sur "Partager" → "Sur l'écran d'accueil".<br>
-    Sur Android : Chrome → menu ⋮ → "Ajouter à l'écran d'accueil".</p>
-    <h3>Sauvegarde</h3>
-    <p style="font-size: 13px;">Pense à exporter tes données régulièrement depuis l'onglet Bilan → Exporter.</p>
+    <h2>⚙️ Paramètres</h2>
+
+    <h3>Bilan pour Claude</h3>
+    <p class="muted" style="font-size: 12px;">Copie et colle dans une conversation Claude pour recommandations perso.</p>
+    <pre class="report" id="settings-report">${escapeHtml(report)}</pre>
+    <button class="full" onclick="copyReport()" style="margin-top: 6px;">📋 Copier le bilan</button>
+
+    <h3 style="margin-top: 18px;">Sauvegarde données</h3>
+    <div class="grid2">
+      <button class="secondary small" onclick="exportData()">⬇ Exporter</button>
+      <button class="secondary small" onclick="importData()">⬆ Importer</button>
+    </div>
+
+    <h3 style="margin-top: 18px;">Session</h3>
+    <button class="secondary small full" onclick="logout()">🔒 Se déconnecter</button>
+
+    <h3 style="margin-top: 18px;">Danger</h3>
+    <button class="danger small full" onclick="resetData()">🗑 Tout effacer</button>
+
+    <p class="hint" style="margin-top: 14px;">App locale — toutes les données restent dans ton navigateur.</p>
   `);
+}
+
+function logout() {
+  localStorage.removeItem(SESSION_KEY);
+  location.reload();
 }
 
 // ============ MODAL ============
@@ -1791,7 +2303,7 @@ async function initAuth() {
 function unlockApp() {
   document.getElementById("auth-gate").classList.add("hidden");
   loadState();
-  render("jour");
+  render("journee");
 }
 
 function renderLoginScreen() {
