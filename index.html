@@ -800,9 +800,22 @@ function loadState() {
       state = { ...state, ...s };
     }
   } catch (e) { console.error(e); }
-  const seedIds = new Set(SEED_RECIPES.map(r => r.id));
-  const customs = (state.recipes || []).filter(r => r.id && !seedIds.has(r.id));
-  state.recipes = [...SEED_RECIPES, ...customs];
+  // Recettes : semées une seule fois au premier chargement, puis entièrement
+  // gérées par l'utilisatrice (modifiables/supprimables, seed comprises).
+  if (!Array.isArray(state.recipes) || state.recipes.length === 0) {
+    state.recipes = SEED_RECIPES.map(r => ({ ...r }));
+  }
+  // Garantir un id unique et stable pour chaque recette (clé d'édition/suppression).
+  const usedIds = new Set();
+  for (const r of state.recipes) {
+    if (!r.id || usedIds.has(r.id)) {
+      const base = slugify(r.title) || "recette";
+      let id = base, n = 2;
+      while (usedIds.has(id)) { id = base + "-" + n; n++; }
+      r.id = id;
+    }
+    usedIds.add(r.id);
+  }
   if (!state.likes) state.likes = {};
 }
 
@@ -1253,7 +1266,6 @@ const RECIPE_SECTIONS = [
 function renderRecipeCard(r) {
   const id = recipeId(r);
   const like = state.likes[id] || 0;
-  const canDelete = !isSeed(r);
   return `
     <div class="recipe">
       <div class="row spread">
@@ -1269,7 +1281,10 @@ function renderRecipeCard(r) {
         ${(r.proteins || []).map(p => `<span class="chip small">${PROTEIN_LABELS[p] || p}</span>`).join("")}
         ${r.region ? `<span class="chip small" style="opacity:.7;">${escapeHtml(r.region)}</span>` : ""}
       </div>
-      ${canDelete ? `<button class="ghost small" onclick="deleteRecipeById('${id}')" style="margin-top: 6px;">🗑 Supprimer</button>` : ""}
+      <div class="row" style="gap: 6px; margin-top: 6px;">
+        <button class="ghost small" onclick="openRecipeModal('${id}')">✎ Modifier</button>
+        <button class="ghost small" onclick="deleteRecipeById('${id}')">🗑 Supprimer</button>
+      </div>
     </div>
   `;
 }
@@ -2195,36 +2210,49 @@ function toggleRecovery() {
 
 // ============ RECIPES ============
 
-function openRecipeModal() {
+function openRecipeModal(editId) {
+  const r = editId ? state.recipes.find(x => recipeId(x) === editId) : null;
+  const types = [
+    ["prot-verdure", "Prot + verdure"],
+    ["carbs-verdure", "Carbs + verdure"],
+    ["fruits", "Repas fruits"],
+    ["recovery", "Récup"]
+  ];
   openModal(`
     <button class="close-x" onclick="closeModal()">✕</button>
-    <h2>Nouvelle recette</h2>
-    <div class="field"><label>Titre</label><input id="rec-title"></div>
-    <div class="field"><label>Type</label>
+    <h2>${r ? "Modifier la recette" : "Nouvelle recette"}</h2>
+    <div class="field"><label>Titre</label><input id="rec-title" value="${r ? escapeHtml(r.title) : ""}"></div>
+    <div class="field"><label>Type / catégorie</label>
       <select id="rec-type">
-        <option value="prot-verdure">Prot + verdure</option>
-        <option value="carbs-verdure">Carbs + verdure</option>
-        <option value="fruits">Repas fruits</option>
-        <option value="recovery">Récup</option>
+        ${types.map(([v, l]) => `<option value="${v}" ${r && r.type === v ? "selected" : ""}>${l}</option>`).join("")}
       </select>
     </div>
     <div class="field"><label>Protéines</label>
       <div id="rec-prot">
-        ${Object.entries(PROTEIN_LABELS).map(([k,v]) => `<span class="pill-toggle" data-prot="${k}" onclick="this.classList.toggle('on')">${v}</span>`).join("")}
+        ${Object.entries(PROTEIN_LABELS).map(([k,v]) => `<span class="pill-toggle ${r && (r.proteins || []).includes(k) ? 'on' : ''}" data-prot="${k}" onclick="this.classList.toggle('on')">${v}</span>`).join("")}
       </div>
+      <p class="hint">Laisse vide pour une recette sans protéine animale (carbs, fruits, PV…).</p>
     </div>
-    <div class="field"><label>Notes / ingrédients</label><textarea id="rec-notes"></textarea></div>
-    <button class="full" onclick="saveRecipe()">Ajouter</button>
+    <div class="field"><label>Notes / ingrédients</label><textarea id="rec-notes">${r ? escapeHtml(r.notes || "") : ""}</textarea></div>
+    <button class="full" onclick="saveRecipe(${editId ? `'${editId}'` : "null"})">${r ? "Enregistrer" : "Ajouter"}</button>
   `);
 }
 
-function saveRecipe() {
+function saveRecipe(editId) {
   const title = document.getElementById("rec-title").value.trim();
   if (!title) return alert("Titre requis");
   const type = document.getElementById("rec-type").value;
   const proteins = [...document.querySelectorAll("#rec-prot .pill-toggle.on")].map(el => el.dataset.prot);
   const notes = document.getElementById("rec-notes").value.trim();
-  state.recipes.push({ title, type, proteins, notes });
+  if (editId) {
+    const r = state.recipes.find(x => recipeId(x) === editId);
+    if (r) { r.title = title; r.type = type; r.proteins = proteins; r.notes = notes; }
+  } else {
+    const base = slugify(title) || "recette";
+    let id = base, n = 2;
+    while (state.recipes.find(x => recipeId(x) === id)) { id = base + "-" + n; n++; }
+    state.recipes.push({ id, title, type, proteins, notes, region: "perso" });
+  }
   saveState();
   closeModal();
   renderAll();
@@ -2346,7 +2374,12 @@ function resetData() {
   if (!confirm("Effacer TOUTES les données (séances, repas, recettes) ? Irréversible.")) return;
   if (!confirm("Vraiment sûre ?")) return;
   localStorage.removeItem("coach_state_v1");
-  state = { sessions: {}, meals: {}, recipes: [...SEED_RECIPES], active_session: null };
+  state = {
+    sessions: {}, activities: {}, body: {}, meals: {},
+    recipes: SEED_RECIPES.map(r => ({ ...r })),
+    likes: {}, active_session: null, suggestion: null
+  };
+  saveState();
   renderAll();
 }
 
