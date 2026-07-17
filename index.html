@@ -955,7 +955,8 @@ function renderJournee() {
     box.innerHTML = renderActiveSession();
   } else if (s) {
     toggle.innerHTML = `<span class="chip" style="background:var(--ok);color:#064e3b;">Fait ✓</span>`;
-    box.innerHTML = renderCompletedSession(s);
+    box.innerHTML = renderCompletedSession(s) +
+      `<button class="ghost small" style="margin-top: 8px;" onclick="editSessionModal()">✎ Modifier la séance</button>`;
   } else if (isToday) {
     toggle.innerHTML = "";
     const suggested = suggestNextSession();
@@ -968,7 +969,13 @@ function renderJournee() {
     `;
   } else {
     toggle.innerHTML = "";
-    box.innerHTML = `<p class="muted">Aucune séance muscu ce jour-là. La séance minutée en direct n'est dispo que pour aujourd'hui, mais tu peux ajouter une activité libre ci-dessous.</p>`;
+    box.innerHTML = `
+      <p class="muted">Aucune séance muscu ce jour-là.</p>
+      <div class="grid2" style="margin-top: 10px;">
+        <button class="secondary" onclick="logPastSession('A')">➕ Séance A</button>
+        <button class="secondary" onclick="logPastSession('B')">➕ Séance B</button>
+      </div>
+      <p class="hint" style="margin-top: 6px;">Enregistre a posteriori une séance faite ce jour-là (sans chrono). Tu peux aussi ajouter une activité libre ci-dessous.</p>`;
   }
 
   // Meals
@@ -1977,7 +1984,10 @@ function showSessionDetail(date) {
         </div>
       </div>
     `).join("")}
-    <button class="danger small" style="margin-top: 14px;" onclick="deleteSession('${date}')">🗑 Supprimer cette séance</button>
+    <div class="grid2" style="margin-top: 14px;">
+      <button class="small" onclick="editSessionFor('${date}')">✎ Modifier</button>
+      <button class="danger small" onclick="deleteSession('${date}')">🗑 Supprimer</button>
+    </div>
   `);
 }
 
@@ -1987,6 +1997,93 @@ function deleteSession(date) {
   saveState();
   closeModal();
   renderAll();
+}
+
+// ---- Édition d'une séance enregistrée (jour passé ou correction, sans chrono) ----
+
+function logPastSession(type) {
+  const date = activeISO();
+  if (state.sessions[date] && !confirm("Une séance est déjà enregistrée ce jour-là. La remplacer ?")) return;
+  state.sessions[date] = {
+    type,
+    exercises: PROGRAM[type].exercises.map(e => ({ name: e.name, target: e.target, plannedSets: e.sets, plannedReps: e.reps, sets: [] }))
+  };
+  saveState();
+  renderJournee();
+  editSessionModal();
+}
+
+function editSessionModal() {
+  const date = activeISO();
+  const s = state.sessions[date];
+  if (!s) return;
+  openModal(`
+    <button class="close-x" onclick="closeModal()">✕</button>
+    <h2>Modifier la séance</h2>
+    <p class="muted">${fmtDateLong(date)} · ${PROGRAM[s.type].name}</p>
+    ${s.exercises.map((e, i) => `
+      <div class="exo">
+        <div class="exo-name">${escapeHtml(e.name)}</div>
+        <div class="exo-target">Objectif : ${e.plannedSets} × ${e.plannedReps}</div>
+        <div class="sets">
+          ${e.sets.map((x, j) => `<span class="set-pill done" style="cursor:pointer;" onclick="removeStoredSet(${i},${j})">${x.weight ? x.weight + 'kg × ' : ''}${x.reps} ✕</span>`).join("")}
+          <button class="chip small" onclick="addStoredSet(${i})">+ Série</button>
+        </div>
+      </div>
+    `).join("")}
+    <p class="hint" style="margin-top: 8px;">Tape une série pour la supprimer.</p>
+    <button class="danger small full" style="margin-top: 12px;" onclick="deleteSession('${date}')">🗑 Supprimer toute la séance</button>
+  `);
+}
+
+function addStoredSet(exoIdx) {
+  const exo = state.sessions[activeISO()].exercises[exoIdx];
+  const lastSet = exo.sets[exo.sets.length - 1];
+  const lastSameExo = findLastPerformance(exo.name);
+  const suggestedWeight = lastSet?.weight ?? lastSameExo?.weight ?? "";
+  const suggestedReps = lastSet?.reps ?? lastSameExo?.reps ?? exo.plannedReps.replace(/[^\d]/g, "").slice(0, 2);
+  openModal(`
+    <h2>${escapeHtml(exo.name)}</h2>
+    <p class="muted">Série ${exo.sets.length + 1} / ${exo.plannedSets}</p>
+    <div class="grid2" style="margin-top: 12px;">
+      <div class="field">
+        <label>Poids (kg)</label>
+        <input type="number" id="es-weight" step="0.5" value="${suggestedWeight}">
+      </div>
+      <div class="field">
+        <label>Reps</label>
+        <input type="number" id="es-reps" value="${suggestedReps}">
+      </div>
+    </div>
+    <div class="grid2" style="margin-top: 12px;">
+      <button class="secondary" onclick="editSessionModal()">← Retour</button>
+      <button onclick="saveStoredSet(${exoIdx})">Ajouter la série</button>
+    </div>
+  `);
+}
+
+function saveStoredSet(exoIdx) {
+  const w = parseFloat(document.getElementById("es-weight").value) || 0;
+  const r = parseInt(document.getElementById("es-reps").value) || 0;
+  if (!r) return alert("Nombre de reps requis");
+  state.sessions[activeISO()].exercises[exoIdx].sets.push({ weight: w, reps: r });
+  saveState();
+  renderJournee();
+  editSessionModal();
+}
+
+function removeStoredSet(exoIdx, setIdx) {
+  state.sessions[activeISO()].exercises[exoIdx].sets.splice(setIdx, 1);
+  saveState();
+  renderJournee();
+  editSessionModal();
+}
+
+function editSessionFor(date) {
+  setActiveDate(date);
+  closeModal();
+  switchTab("journee", true);
+  editSessionModal();
 }
 
 // ============ MEAL ACTIONS ============
