@@ -312,6 +312,17 @@ pre.report {
 <!-- ============ VIEW: MA JOURNÉE ============ -->
 <section id="view-journee" class="view active">
 
+  <div class="card" id="day-nav" style="padding: 10px 12px;">
+    <div class="row spread">
+      <button class="ghost small" onclick="shiftDay(-1)">◀</button>
+      <div style="text-align: center;">
+        <div id="day-nav-label" style="font-weight: 600; text-transform: capitalize;"></div>
+        <button class="ghost small" id="day-nav-today" style="display: none; margin-top: 2px;" onclick="goToday()">↩ Revenir à aujourd'hui</button>
+      </div>
+      <button class="ghost small" id="day-nav-next" onclick="shiftDay(1)">▶</button>
+    </div>
+  </div>
+
   <div class="card">
     <div class="row spread">
       <h2>Séance & activités du jour</h2>
@@ -511,7 +522,7 @@ pre.report {
       <button class="ghost small" onclick="calNav(1)">▶</button>
     </div>
     <div id="cal-grid"></div>
-    <div class="hint" style="margin-top: 8px;">🏋️ séance · 🏅 activité · 🥗 récup · 💧 hydratation OK · ⚖️ pesée</div>
+    <div class="hint" style="margin-top: 8px;">👆 Tape un jour pour l'ouvrir et le corriger · 🏋️ séance · 🏅 activité · 🥗 récup · 💧 hydratation OK · ⚖️ pesée</div>
   </div>
 
   <div class="card">
@@ -813,6 +824,23 @@ function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+// Jour actuellement édité dans l'onglet "Ma journée" (par défaut = aujourd'hui).
+// Permet de revenir sur un jour passé pour le corriger.
+let activeDate = null;
+function activeISO() { return activeDate || todayISO(); }
+function isViewingToday() { return activeISO() === todayISO(); }
+function setActiveDate(iso) { activeDate = (iso === todayISO()) ? null : iso; }
+function shiftDay(delta) {
+  const d = fromISO(activeISO());
+  d.setDate(d.getDate() + delta);
+  const iso = isoDate(d);
+  if (iso > todayISO()) return; // pas de futur
+  setActiveDate(iso);
+  renderJournee();
+  window.scrollTo(0, 0);
+}
+function goToday() { setActiveDate(todayISO()); renderJournee(); window.scrollTo(0, 0); }
+function editDay(iso) { setActiveDate(iso); switchTab("journee", true); }
 function isoDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
@@ -841,7 +869,7 @@ function daysOfWeek() {
   });
 }
 function todayMeals() {
-  const today = todayISO();
+  const today = activeISO();
   if (!state.meals[today]) {
     state.meals[today] = { r1: null, r2: null, rf: null, oleag: false, kiff: 0, recovery: false, water: 0 };
   }
@@ -856,7 +884,7 @@ function waterGoal(dateISO) {
 }
 
 function bodyToday() {
-  const t = todayISO();
+  const t = activeISO();
   if (!state.body[t]) state.body[t] = { weight: null, hydration: null };
   return state.body[t];
 }
@@ -876,7 +904,10 @@ document.querySelectorAll("nav.tabs button").forEach(btn => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
 
-function switchTab(name) {
+function switchTab(name, keepDate) {
+  // L'onglet "Ma journée" en bas ramène toujours à aujourd'hui ;
+  // seul le passage par le calendrier (editDay) garde le jour choisi.
+  if (name === "journee" && !keepDate) setActiveDate(todayISO());
   document.querySelectorAll("nav.tabs button").forEach(b => {
     b.classList.toggle("active", b.dataset.tab === name);
   });
@@ -904,8 +935,15 @@ function renderAll() { render(currentTab()); }
 
 // --- JOUR ---
 function renderJournee() {
-  const today = todayISO();
-  document.getElementById("today-date").textContent = fmtDateLong(today);
+  const today = activeISO();
+  const isToday = isViewingToday();
+  document.getElementById("today-date").textContent = fmtDateLong(todayISO());
+
+  // Navigateur de date
+  document.getElementById("day-nav-label").textContent =
+    fmtDateLong(today) + (isToday ? " · Aujourd'hui" : "");
+  document.getElementById("day-nav-today").style.display = isToday ? "none" : "inline-block";
+  document.getElementById("day-nav-next").style.visibility = isToday ? "hidden" : "visible";
 
   // Session
   const s = state.sessions[today];
@@ -918,7 +956,7 @@ function renderJournee() {
   } else if (s) {
     toggle.innerHTML = `<span class="chip" style="background:var(--ok);color:#064e3b;">Fait ✓</span>`;
     box.innerHTML = renderCompletedSession(s);
-  } else {
+  } else if (isToday) {
     toggle.innerHTML = "";
     const suggested = suggestNextSession();
     box.innerHTML = `
@@ -928,6 +966,9 @@ function renderJournee() {
         <button onclick="startSession('B')">▶ Séance B</button>
       </div>
     `;
+  } else {
+    toggle.innerHTML = "";
+    box.innerHTML = `<p class="muted">Aucune séance muscu ce jour-là. La séance minutée en direct n'est dispo que pour aujourd'hui, mais tu peux ajouter une activité libre ci-dessous.</p>`;
   }
 
   // Meals
@@ -1488,8 +1529,9 @@ function renderCalendar() {
     if (m?.water >= waterGoal(iso) && m.water > 0) badges.push("💧");
     if (state.body[iso]?.weight != null) badges.push("⚖️");
     const isToday = iso === todayISO();
+    const isFuture = iso > todayISO();
     cells.push(`
-      <div style="padding: 4px 2px; text-align: center; border-radius: 6px; background: ${isToday ? 'var(--accent)' : 'var(--card2)'}; color: ${isToday ? '#1e1b4b' : 'var(--text)'}; min-height: 46px;">
+      <div ${isFuture ? "" : `onclick="editDay('${iso}')"`} style="padding: 4px 2px; text-align: center; border-radius: 6px; background: ${isToday ? 'var(--accent)' : 'var(--card2)'}; color: ${isToday ? '#1e1b4b' : 'var(--text)'}; min-height: 46px; ${isFuture ? 'opacity: .4;' : 'cursor: pointer;'}">
         <div style="font-size: 12px; font-weight: 600;">${d}</div>
         <div style="font-size: 11px; line-height: 1.1;">${badges.join("")}</div>
       </div>
@@ -1798,7 +1840,7 @@ function intensityLabel(key) {
 }
 
 function openActivityModal(editIdx) {
-  const today = todayISO();
+  const today = activeISO();
   const acts = state.activities[today] || [];
   const existing = editIdx != null ? acts[editIdx] : null;
   openModal(`
@@ -1839,7 +1881,7 @@ function saveActivity(editIdx) {
   const intensity = document.getElementById("act-intensity").value;
   const notes = document.getElementById("act-notes").value.trim();
   if (duration <= 0) return alert("Durée doit être > 0");
-  const today = todayISO();
+  const today = activeISO();
   if (!state.activities[today]) state.activities[today] = [];
   const item = { type, duration, intensity, notes };
   if (editIdx >= 0) state.activities[today][editIdx] = item;
@@ -1851,7 +1893,7 @@ function saveActivity(editIdx) {
 
 function deleteActivity(idx) {
   if (!confirm("Supprimer cette activité ?")) return;
-  const today = todayISO();
+  const today = activeISO();
   state.activities[today].splice(idx, 1);
   if (state.activities[today].length === 0) delete state.activities[today];
   saveState();
